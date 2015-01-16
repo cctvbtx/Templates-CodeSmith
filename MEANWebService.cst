@@ -1,0 +1,270 @@
+﻿<%-- 
+CodeSmith SOA template
+Author:  Fred Lackey <fred.lackey@gmail.com>
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="Text" OutputType="None" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="01. Setup" Description="" OnChanged="OnSetupChanged" %>
+<%@ Property Category="01. Setup" Name="OutputDirectory" Default="C:\\_Generated"
+    Type="System.String" Default="" Optional="False" 
+    Description="The folder to save the generated files." 
+    Editor="System.Windows.Forms.Design.FolderNameEditor, System.Design, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" OnChanged="OnSetupChanged" %>
+<%@ Property Name="OutputVersioning" Type="System.Boolean" Category="01. Setup" Description="Generated files are preserved in versioned folder beneath output directory." OnChanged="OnSetupChanged" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="ProjectName" Type="System.String" Category="02. Project" Optional="False" Default="MyMeanProject" Description="(Alpha, No spaces or extended) The short name of the web application.  Used in URLs and package.json." OnChanged="OnSetupChanged" %>
+<%@ Property Name="VersionText" Type="System.String" Category="02. Project" Optional="False" Default="1.0.0" Description="(Numeric - ex: Major.Minor.Revision)  Version of generated application or database.  Used in package.json." OnChanged="OnSetupChanged" %>
+<%@ Property Name="ProjectDescription" Type="System.String" Category="02. Project" Optional="True" Default="My MEAN project" Description="Formal name or a few words to describe the project.  Used in package.json." OnChanged="OnSetupChanged" %>
+<%@ Property Name="AuthorName" Type="System.String" Category="02. Project" Optional="True" Description="Name and/or email address of author.  Used in package.json." OnChanged="OnSetupChanged" %>
+
+<%-- 03. Dev Config --%>
+<%@ Property Name="DevHostName" Type="System.String" Category="03. Dev Config" Optional="False" Default="localhost" Description="FQDN of development (local) machine." OnChanged="OnSetupChanged" %>
+<%@ Property Name="DevHostPort" Type="System.Int32" Category="03. Dev Config" Optional="False" Default="3030" Description="Port of development (local) server process." OnChanged="OnSetupChanged" %>
+<%@ Property Name="DevDbFQDN" Type="System.String" Category="03. Dev Config" Optional="True" Default="localhost" Description="Name of the development MongoDB collection." OnChanged="OnSetupChanged" %>
+<%@ Property Name="DevDbName" Type="System.String" Category="03. Dev Config" Optional="True" Default="" Description="FQDN of the development DB server." OnChanged="OnSetupChanged" %>
+
+<%-- 03. Prod Config --%>
+<%@ Property Name="ProdHostName" Type="System.String" Category="03. Prod Config" Optional="False" Default="localhost" Description="FQDN of production (local) machine." OnChanged="OnSetupChanged" %>
+<%@ Property Name="ProdHostPort" Type="System.Int32" Category="03. Prod Config" Optional="False" Default="80" Description="Port of production (local) server process." OnChanged="OnSetupChanged" %>
+<%@ Property Name="ProdDbFQDN" Type="System.String" Category="03. Prod Config" Optional="False" Default="dbuser:dbpass@ds123456.mongolab.com:12345" Description="Name of the production MongoDB collection." OnChanged="OnSetupChanged" %>
+<%@ Property Name="ProdDbName" Type="System.String" Category="03. Prod Config" Optional="True" Default="" Description="FQDN of the production DB server." OnChanged="OnSetupChanged" %>
+
+<%-- 04. Options --%>
+<%@ Property Name="DirectRoutes" Type="System.Boolean" Category="04. Options" Default="True" Description="Routes directly manipulating the database (not using the data repository) will be generated." OnChanged="OnSetupChanged" %>
+<%@ Property Name="DirectRoutesPrefix" Type="System.String" Category="04. Options" Default="api" Description="URI prefix for direct web service routes" OnChanged="OnSetupChanged" %>
+<%@ Property Name="RepoRoutes" Type="System.Boolean" Category="04. Options" Default="True" Description="Routes calling upon the data repository will be generated." OnChanged="OnSetupChanged" %>
+<%@ Property Name="RepoRoutesPrefix" Type="System.String" Category="04. Options" Default="repo" Description="URI prefix for web service routes using the data repository" OnChanged="OnSetupChanged" %>
+
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="Source/Projects/SkydiverFL.Extensions.CodeSmith/bin/Debug" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+
+<%-- ###########################################################################
+     PER DATABASE TEMPLATES
+     ########################################################################### --%>
+<%@ Register Name="ReadMeTemplate" Template="Templates/MEANWebService/readme.txt.cst" %>
+<%@ Register Name="ServerTemplate" Template="Templates/MEANWebService/server.js.cst" %>
+<%@ Register Name="ConstantsTemplate" Template="Templates/MEANWebService/constants.js.cst" %>
+<%@ Register Name="ExpressConfigTemplate" Template="Templates/MEANWebService/express.config.js.cst" %>
+<%@ Register Name="MongooseConfigTemplate" Template="Templates/MEANWebService/mongoose.config.js.cst" %>
+<%@ Register Name="MongooseSeedTemplate" Template="Templates/MEANWebService/mongoose.seed.js.cst" %>
+<%@ Register Name="PackageJsonTemplate" Template="Templates/MEANWebService/package.json.cst" %>
+
+<%@ Register Name="AuthenticationTemplate" Template="Templates/Common/authentication.js.cst" %>
+<%@ Register Name="EncryptionTemplate" Template="Templates/Common/encryption.js.cst" %>
+<%@ Register Name="StringsTemplate" Template="Templates/Common/strings.js.cst" %>
+
+<%-- ###########################################################################
+     PER TABLE TEMPLATES
+     ########################################################################### --%>
+<%@ Register Name="ModelTemplate" Template="Templates/MEANWebService/model.js.cst" %>
+<%@ Register Name="RepoTemplate" Template="Templates/MEANWebService/repo.js.cst" %>
+<%@ Register Name="RoutesTemplate" Template="Templates/MEANWebService/route.js.cst" %>
+
+<script runat="template">
+
+    // ENTRY POINT
+    // Controls setup of variables, directories, and calls subordinate templates.
+    public override void Render(TextWriter writer)
+    {
+        var buildPath = OutputVersioning 
+            ? Path.Combine(OutputDirectory, DateTime.Now.GetDateString("yyyyMMddhhmmss"), ProjectName) 
+            : Path.Combine(OutputDirectory, ProjectName);
+        
+        if ( !renderPerDatabaseTemplates(buildPath) ){ return; }
+        if ( !renderPerTableTemplates(buildPath) ){ return; }
+    }
+    
+    private bool renderPerDatabaseTemplates(string buildPath)
+    {
+        var outputDir = buildPath;
+        var file = default(OutputFile);
+        var fileName = string.Empty;
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+        
+        fileName = "readme.txt";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        ReadMeTemplate _ReadMeTemplate = this.Create<ReadMeTemplate>();
+        this.CopyPropertiesTo(_ReadMeTemplate);
+        _ReadMeTemplate.FileName = fileName;
+        _ReadMeTemplate.RenderToFile(file, true);
+        
+        fileName = "server.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        ServerTemplate _ServerTemplate = this.Create<ServerTemplate>();
+        this.CopyPropertiesTo(_ServerTemplate);
+        _ServerTemplate.FileName = fileName;
+        _ServerTemplate.RenderToFile(file, true);
+        
+        fileName = "package.json";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        PackageJsonTemplate _PackageJsonTemplate = this.Create<PackageJsonTemplate>();
+        this.CopyPropertiesTo(_PackageJsonTemplate);
+        _PackageJsonTemplate.FileName = fileName;
+        _PackageJsonTemplate.RenderToFile(file, true);
+        
+        outputDir = Path.Combine(buildPath, "client");
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+        var sourcePath = Path.Combine(
+            this.CodeTemplateInfo.FullPath.Replace(this.CodeTemplateInfo.FileName, string.Empty),
+                "Templates", "Common", "favicon.ico");
+
+        File.Copy(sourcePath, Path.Combine(outputDir, "favicon.ico"), true);
+        
+        outputDir = Path.Combine(buildPath, "server", "config");
+        
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+        
+        fileName = "constants.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        ConstantsTemplate _ConstantsTemplate = this.Create<ConstantsTemplate>();
+        this.CopyPropertiesTo(_ConstantsTemplate);
+        _ConstantsTemplate.FileName = fileName;
+        _ConstantsTemplate.RenderToFile(file, true);
+        
+        fileName = "express.config.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        ExpressConfigTemplate _ExpressConfigTemplate = this.Create<ExpressConfigTemplate>();
+        this.CopyPropertiesTo(_ExpressConfigTemplate);
+        _ExpressConfigTemplate.FileName = fileName;
+        _ExpressConfigTemplate.RenderToFile(file, true);
+        
+        fileName = "mongoose.config.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        MongooseConfigTemplate _MongooseConfigTemplate = this.Create<MongooseConfigTemplate>();
+        this.CopyPropertiesTo(_MongooseConfigTemplate);
+        _MongooseConfigTemplate.FileName = fileName;
+        _MongooseConfigTemplate.RenderToFile(file, true);
+        
+        fileName = "mongoose.seed.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        MongooseSeedTemplate _MongooseSeedTemplate = this.Create<MongooseSeedTemplate>();
+        this.CopyPropertiesTo(_MongooseSeedTemplate);
+        _MongooseSeedTemplate.FileName = fileName;
+        _MongooseSeedTemplate.RenderToFile(file, true);
+        
+        outputDir = Path.Combine(buildPath, "server", "utilities");
+    
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+        fileName = "authentication.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        AuthenticationTemplate _AuthenticationTemplate = this.Create<AuthenticationTemplate>();
+        this.CopyPropertiesTo(_AuthenticationTemplate);
+        _AuthenticationTemplate.FileName = fileName;
+        _AuthenticationTemplate.RenderToFile(file, true);
+        
+        fileName = "encryption.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        EncryptionTemplate _EncryptionTemplate = this.Create<EncryptionTemplate>();
+        this.CopyPropertiesTo(_EncryptionTemplate);
+        _EncryptionTemplate.FileName = fileName;
+        _EncryptionTemplate.RenderToFile(file, true);
+        
+        fileName = "strings.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        StringsTemplate _StringsTemplate = this.Create<StringsTemplate>();
+        this.CopyPropertiesTo(_StringsTemplate);
+        _StringsTemplate.FileName = fileName;
+        _StringsTemplate.RenderToFile(file, true);
+
+        return true;
+    }
+
+    private bool renderPerTableTemplates(string buildPath)
+    {
+        var outputDir = buildPath;
+        var file = default(OutputFile);
+        var fileName = string.Empty;
+        
+        foreach ( TableSchema table in SourceDatabase.Tables )
+        {
+            outputDir = table.HasDefaultOnwer()
+                ? Path.Combine(buildPath, "server", "models")
+                : Path.Combine(buildPath, "server", "models", table.Owner.ToPascalCase());
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = table.Name.ToPascalCase() + "Model.js";
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            ModelTemplate _ModelTemplate = this.Create<ModelTemplate>();
+            this.CopyPropertiesTo(_ModelTemplate);
+            _ModelTemplate.FileName = fileName;
+            _ModelTemplate.CurrentTable = table;
+            _ModelTemplate.RenderToFile(file, true);
+
+            
+            outputDir = table.HasDefaultOnwer()
+                ? Path.Combine(buildPath, "server", "repos")
+                : Path.Combine(buildPath, "server", "repos", table.Owner.ToPascalCase());
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = table.Name.ToPascalCase() + "Repo.js";
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            RepoTemplate _RepoTemplate = this.Create<RepoTemplate>();
+            this.CopyPropertiesTo(_RepoTemplate);
+            _RepoTemplate.FileName = fileName;
+            _RepoTemplate.CurrentTable = table;
+            _RepoTemplate.RenderToFile(file, true);
+
+            
+            outputDir = table.HasDefaultOnwer()
+                ? Path.Combine(buildPath, "server", "routes")
+                : Path.Combine(buildPath, "server", "routes", table.Owner.ToPascalCase());
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = table.Name.ToPascalCase() + "Routes.js";
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            RoutesTemplate _RoutesTemplate = this.Create<RoutesTemplate>();
+            this.CopyPropertiesTo(_RoutesTemplate);
+            _RoutesTemplate.FileName = fileName;
+            _RoutesTemplate.CurrentTable = table;
+            _RoutesTemplate.RenderToFile(file, true);
+        }
+
+        return true;
+    }
+    
+    private void OnSetupChanged(object sender, EventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(AuthorName)){ AuthorName = Environment.UserName; }
+        
+        var dbName = SourceDatabase == null ? string.Empty : SourceDatabase.Name.Clean(CommonStrings.Alphanumeric, false);
+        if (string.IsNullOrEmpty(DevDbName) && !string.IsNullOrEmpty(dbName)){ DevDbName = dbName; }
+        if (string.IsNullOrEmpty(ProdDbName) && !string.IsNullOrEmpty(dbName)){ ProdDbName = dbName; }
+    }
+    
+    public override IEnumerable<ValidationError> GetCustomValidationErrors() 
+    {
+        var errors = new List<ValidationError>();
+        
+        if (SourceDatabase == null){ errors.Add(new ValidationError("Database not selected")); }
+        
+        return errors;
+    }
+    
+</script>

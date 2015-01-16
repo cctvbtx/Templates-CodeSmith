@@ -1,0 +1,64 @@
+﻿<%-- 
+Name:   mongoose.config.js.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Desc:
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="JSON" OutputType="None" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
+<%@ Property Name="OutputDirectory" Type="System.String" Optional="True" %>
+<%@ Property Name="OutputVersioning" Type="System.Boolean" Optional="True" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="ProjectName" Type="System.String" Optional="True" %>
+<%@ Property Name="VersionText" Type="System.String" Optional="True" %>
+<%@ Property Name="ProjectDescription" Type="System.String" Optional="True" %>
+<%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%-- 03. Dev Config --%>
+<%@ Property Name="DevHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="DevHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="DevDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="DevDbName" Type="System.String" Optional="True" %>
+
+<%-- 03. Prod Config --%>
+<%@ Property Name="ProdHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="ProdDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdDbName" Type="System.String" Optional="True" %>
+
+<%-- Local Properties --%>
+<%@ Property Name="FileName" Type="System.String" Optional="True" %>
+
+
+
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="../../Source/Projects/SkydiverFL.Extensions.CodeSmith/bin/Debug" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+
+<!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+var mongoose = require('mongoose');
+
+module.exports = function(constants) {
+
+    var db = mongoose.connection;
+
+    db.on('error', console.error.bind(console, constants.name + ' db error'));
+    db.once('open', function callback() {
+        console.log(constants.name + ' db opened');
+    });
+
+    mongoose.connect(constants.db);
+}

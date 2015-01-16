@@ -1,0 +1,72 @@
+﻿<%-- 
+Name:   Columns-ValidateJavacriptParams.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Description: Validates and cleans parameters.  Invalid values are passed to the callback function.
+
+USAGE:
+Include immediately after setting a local variable called "columns" of type ColumnSchemaCollection.
+
+EXCEPTIONS:
+Audit columns will be verified like any other column.
+--%>
+<%
+        foreach(var column in columns)
+        {
+            if (column.AllowDBNull)
+            {
+                switch (column.NativeType)
+                {
+                    case "uniqueidentifier":
+                    case "int":
+                    case "float":
+                    case "datetime":
+%>
+    if (<%= column.Name.ToCamelCase() %> && !strings.isNullOrWhitespace(<%= column.Name.ToCamelCase() %>) && !<%= ValidatorMethod[column.NativeType] %>(<%= column.Name.ToCamelCase() %>)){ return callback('<%= column.Name.ToCamelCase() %> invalid'); }
+<%
+                        break;
+                    case "char":
+                    case "varchar":
+                    case "nchar":
+                    case "nvarchar":
+%>
+    column.Name.ToCamelCase() = strings.trim(<%= column.Name.ToCamelCase() %>);
+<%
+                        break;
+                    default:
+%>
+    INTENTIONAL ERROR 001 in Columns-ValidateJavacriptParams.cst - TYPE NOT EXPECTED <%= column.NativeType %>
+<%
+                        break;
+                }
+            }
+            else
+            {
+                switch (column.NativeType)
+                {
+                    case "uniqueidentifier":
+                    case "int":
+                    case "bigint":
+                    case "float":
+                    case "datetime":
+%>
+    if (!<%= column.Name.ToCamelCase() %> || strings.isNullOrWhitespace(<%= column.Name.ToCamelCase() %>)){ return callback('<%= column.Name.ToCamelCase() %> required'); }
+    if (!<%= ValidatorMethod[column.NativeType] %>(<%= column.Name.ToCamelCase() %>)){ return callback('<%= column.Name.ToCamelCase() %> invalid'); }
+<%
+                        break;
+                    case "char":
+                    case "varchar":
+                    case "nchar":
+                    case "nvarchar":
+%>
+    if (!<%= column.Name.ToCamelCase() %> || strings.isNullOrWhitespace(<%= column.Name.ToCamelCase() %>)){ return callback('<%= column.Name.ToCamelCase() %> required'); } else { <%= column.Name.ToCamelCase() %> = strings.trim(<%= column.Name.ToCamelCase() %>); }
+<%
+                        break;
+                    default:
+%>
+    INTENTIONAL ERROR 002 in Columns-ValidateJavacriptParams.cst - TYPE NOT EXPECTED <%= column.NativeType %>
+<%
+                        break;
+                }
+            }
+        }
+%>        

@@ -1,0 +1,432 @@
+﻿<%-- 
+Name:   repo.js.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Desc:
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="JavaScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
+<%@ Property Name="OutputDirectory" Type="System.String" Optional="True" %>
+<%@ Property Name="OutputVersioning" Type="System.Boolean" Optional="True" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="ProjectName" Type="System.String" Optional="True" %>
+<%@ Property Name="VersionText" Type="System.String" Optional="True" %>
+<%@ Property Name="ProjectDescription" Type="System.String" Optional="True" %>
+<%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%-- 03. Dev Config --%>
+<%@ Property Name="DevHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="DevHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="DevDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="DevDbName" Type="System.String" Optional="True" %>
+
+<%-- 03. Prod Config --%>
+<%@ Property Name="ProdHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="ProdDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdDbName" Type="System.String" Optional="True" %>
+
+<%-- Local Properties --%>
+<%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
+<%@ Property Name="FileName" Type="System.String" Optional="True" %>
+
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="../../Source/Projects/SkydiverFL.Extensions.CodeSmith/bin/Debug" %>
+
+<%@ Map Name="DeleteFlagDefaultValue" Src="Maps\DeleteFlagDefaultValue.csmap" %>
+<%@ Map Name="DeleteFlagDeletedValue" Src="Maps\DeleteFlagDeletedValue.csmap" %>
+<%@ Map Name="FieldNameOverrides" Src="Maps\FieldNameOverrides.csmap" %>
+<%@ Map Name="ValidatorMethod" Src="Maps\ValidatorMethod.csmap" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+
+<!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+<%
+    var operations = new List<string>();
+    var operationName = string.Empty;
+
+    var varMode = FilterMode.Select;                // Temp variable ... reused by include files
+    var columns = default(ColumnSchemaCollection);  // Temp variable ... reused by include files
+
+    var tabSpaceCount = 4;
+
+    var idColumn = CurrentTable.HasSingleIdentifierColumn() 
+        ? CurrentTable.GetSingularIdentifierColumn()
+        : CurrentTable.HasSingularPrimaryKey() 
+            ? CurrentTable.GetSingularKeyColumn()
+            : null;
+
+    var idColumnName = idColumn != null ? idColumn.Name : string.Empty;
+
+    var hasDelFlag = CurrentTable.HasDeleteFlag();
+
+    var delFlag = hasDelFlag
+        ? CurrentTable.GetDeleteFlagColumn()
+        : null;
+
+    var delFlagName = delFlag != null ? delFlag.Name : string.Empty;
+
+    var upDirString = CurrentTable.HasDefaultOnwer()
+        ? "../"
+        : "../../";
+
+    var folderName = CurrentTable.HasDefaultOnwer()
+        ? string.Empty
+        : CurrentTable.Owner.ToPascalCase() + "/";
+%>
+var <%= CurrentTable.Name.ToPascalCase() %> = require('<%= upDirString %>models/<%= folderName %><%= CurrentTable.Name.ToPascalCase() %>Model');
+
+var strings = require('<%= upDirString %>utilities/strings'),
+    validator = require('validator');
+<%
+    // ====================
+    // GET BY INDEX - BEGIN
+    // ====================
+
+    foreach(var index in CurrentTable.Indexes)
+    {
+        varMode = FilterMode.Select;
+        columns = index.Filter(varMode);
+
+        if (columns.Count < 1){ continue; }
+        
+        operationName = "find" + (index.IsUnique ? "One" : string.Empty) + "By" + index.CreateUniqueName();
+        operations.Add(operationName);
+%>
+
+var <%= operationName %> = function(<%= index.ToParamsArray(true) %>, callback){
+<!-- #include file="Includes\Columns-ValidateJavacriptParams.cst" -->
+
+<!-- #include file="Includes\Columns-ToJsonVars.cst" -->
+    <%= CurrentTable.Name.ToPascalCase() %>.find<% if (index.IsUnique){ %>One<% } %>(vars, callback);
+}
+<%
+    }
+    
+    // ====================
+    // GET BY INDEX - END
+    // ====================
+    
+    
+    
+    
+    
+    // ==============
+    // CREATE - BEGIN
+    // ==============
+    
+    operationName = "create";
+    operations.Add(operationName);
+
+    varMode = FilterMode.Create;
+    columns = CurrentTable.Filter(varMode);
+%>
+
+var <%= operationName %> = function (<%= CurrentTable.Filter(FilterMode.Create).ToParamsArray() %>, callback){
+<!-- #include file="Includes\Columns-ValidateJavacriptParams.cst" -->
+
+<%
+    // Add remaining audit columns to ensure they're populated during insert.
+    if (CurrentTable.HasVersionDateColumn() && !columns.Contains(CurrentTable.GetVersionDateColumn())){ columns.Add(CurrentTable.GetVersionDateColumn()); }
+    if (hasDelFlag && !columns.Contains(delFlag)){ columns.Add(delFlag); }
+%>
+<!-- #include file="Includes\Columns-ToJsonVars.cst" -->
+
+    var <%= CurrentTable.Name.ToCamelCase() %> = new <%= CurrentTable.Name.ToPascalCase() %>(vars);
+        
+    <%= CurrentTable.Name.ToCamelCase() %>.save(callback);
+}
+<%
+    
+    // ==============
+    // CREATE - END
+    // ==============
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    // ============
+    // INIT - BEGIN
+    // ============
+
+    if (!CurrentTable.Indexes.Any(x => x.IsUnique && !x.IsPrimaryKey))
+    {
+%>
+
+// Init cannot be generated.  Table does not have any unique indicies.
+<%
+    }
+    else
+    {
+        operationName = "init";
+        operations.Add(operationName);
+
+        varMode = FilterMode.Create;
+        columns = CurrentTable.Filter(varMode);
+        
+        var indices = CurrentTable.Indexes.Where(x => x.IsUnique && !x.IsPrimaryKey);
+        var count = 0;
+%>
+
+var <%= operationName %> = function (<%= CurrentTable.Filter(FilterMode.Create).ToParamsArray() %>, suppressError, callback){
+<!-- #include file="Includes\Columns-ValidateJavacriptParams.cst" -->
+
+    var foundError = (suppressError === true ? null : 'Possible collission detected');
+    
+<%
+        foreach (var index in indices)
+        {
+            count++;
+%>
+<%= string.Empty.PadLeft(tabSpaceCount * count, ' ') %>findOne(<%= index.Filter(FilterMode.Select).ToParamsArray() %>, function(err, existing){ 
+<%= string.Empty.PadLeft(tabSpaceCount * count, ' ') %>    if (err){ return callback(err); }
+<%= string.Empty.PadLeft(tabSpaceCount * count, ' ') %>    if (existing){ return callback(foundError, existing); }
+<%
+        }
+%>
+<%= string.Empty.PadLeft(tabSpaceCount * count, ' ') %>    create(<%= CurrentTable.Filter(FilterMode.Create).ToParamsArray() %>, callback);
+<%
+        foreach (var index in indices)
+        {
+            var isLast = (index == indices.Last());
+%>
+    <%= string.Empty.PadLeft(tabSpaceCount * count, ' ') %>})<% if(isLast){ %>;<% } %>
+<%
+            count--;
+        }
+%>    
+}
+<%
+    }
+    
+    // ================
+    // FIND ANY - END
+    // ================
+    
+    
+    
+    
+    
+    
+    // ==============
+    // UPDATE - BEGIN
+    // ==============
+
+    operationName = "update";
+    operations.Add(operationName);
+
+    varMode = FilterMode.Update;
+    columns = CurrentTable.Filter(varMode);
+    
+    if (!idColumn.IsPrimaryKeyMember && CurrentTable.HasSingularPrimaryKey())
+    {
+        columns.Remove(CurrentTable.GetSingularKeyColumn());
+    }
+%>
+
+var <%= operationName %> = function (<%= columns.ToParamsArray() %>, callback){
+    var query = { _<%= FieldNameOverrides[idColumn.Name.ToCamelCase()] %>: <%= idColumn.Name.ToCamelCase() %><% if(hasDelFlag){ %>, <%= FieldNameOverrides[delFlag.Name.ToCamelCase()] %>: <%= DeleteFlagDefaultValue[delFlag.NativeType] %><% } %> };
+<!-- #include file="Includes\Columns-ToJsonVarsWithValidation.cst" -->
+
+    Account.findOneAndUpdate(query, vars, callback);
+}
+<%
+    
+    // ==============
+    // UPDATE - END
+    // ==============
+    
+    
+    
+    
+    
+    
+    // ======================
+    // DELETE & PURGE - BEGIN
+    // ======================
+    
+    if (delFlag == null)
+    {
+%>
+
+// Delete (non-destructive) not possible.  Table does not have a delete flag.
+<%
+    }
+    else if (idColumn == null)
+    {
+%>
+
+// Delete (non-destructive) not possible.  Table does not a singular/simple primary key or a singular identifier column.
+<%
+    }
+    else
+    {
+        operations.Add("deleteOne");
+        operations.Add("purgeOne");
+        operations.Add("purgeAll");
+%>
+
+var deleteOne = function (<%= idColumn.Name.ToCamelCase() %><% if(CurrentTable.HasVersionUserColumn()){ %>, <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %><% } %>, callback){
+    if (!<%= idColumn.Name.ToCamelCase() %>) { return callback('<%= idColumn.Name.ToCamelCase() %> required'); }
+    if (<%= ValidatorMethod[idColumn.NativeType] %>(<%= idColumn.Name.ToCamelCase() %>)) { return callback('<%= idColumn.Name.ToCamelCase() %> invalid'); }
+<% 
+    if(CurrentTable.HasVersionUserColumn())
+    { 
+%>
+    if (!<%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %>) { return callback('<%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> required'); }
+    if (<%= ValidatorMethod[CurrentTable.GetVersionUserColumn().NativeType] %>(<%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %>)) { return callback('<%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> invalid'); }
+<% 
+    } 
+%>
+
+    var query = { <%= FieldNameOverrides[idColumn.Name.ToCamelCase()] %>: <%= idColumn.Name.ToCamelCase() %><% if(CurrentTable.HasVersionUserColumn()){ %>, <%= FieldNameOverrides[delFlag.Name.ToCamelCase()] %>: <%= DeleteFlagDefaultValue[delFlag.NativeType] %><% } %> };
+    var update = { <%= FieldNameOverrides[delFlag.Name.ToCamelCase()] %>: <%= DeleteFlagDeletedValue[delFlag.NativeType] %><% if(CurrentTable.HasVersionUserColumn()){ %>, <%= FieldNameOverrides[CurrentTable.GetVersionUserColumn().Name.ToCamelCase()] %>: <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> <% } %> };
+
+    <%= CurrentTable.Name.ToPascalCase() %>.findOneAndUpdate(query, update, callback);
+}
+
+var purgeOne = function (<%= idColumn.Name.ToCamelCase() %>, confirm, callback){
+    if (!<%= idColumn.Name.ToCamelCase() %>) { return callback('<%= idColumn.Name.ToCamelCase() %> required'); }
+    if (<%= ValidatorMethod[idColumn.NativeType] %>(<%= idColumn.Name.ToCamelCase() %>)) { return callback('<%= idColumn.Name.ToCamelCase() %> invalid'); }
+
+    var query = { <%= FieldNameOverrides[idColumn.Name.ToCamelCase()] %>: <%= idColumn.Name.ToCamelCase() %>, <%= FieldNameOverrides[delFlag.Name.ToCamelCase()] %>: <%= DeleteFlagDeletedValue[delFlag.NativeType] %> };
+
+    if (confirm === true) {
+        <%= CurrentTable.Name.ToPascalCase() %>.find(query).remove(callback);
+    } else {
+        callback('purgeOne operation not confirmed');
+    }
+}
+
+var purgeAll = function (confirm, callback){
+    var query = { <%= FieldNameOverrides[delFlag.Name.ToCamelCase()] %>: <%= DeleteFlagDeletedValue[delFlag.NativeType] %> };
+
+    if (confirm === true) {
+        <%= CurrentTable.Name.ToPascalCase() %>.find(query).remove(callback);
+    } else {
+        callback('purgeAll operation not confirmed');
+    }
+}
+<%
+        
+    }
+    
+    // ======================
+    // DELETE & PURGE - END
+    // ======================
+    
+    
+    
+    
+    // ============
+    // KILL - BEGIN
+    // ============
+
+    if (idColumn == null)
+    {
+%>
+
+// Kill () not possible.  Table does not a singular/simple primary key or a singular identifier column.
+<%
+    }
+    else
+    {
+        operations.Add("killOne");
+        operations.Add("killAll");
+    
+%>
+
+var killOne = function (<%= idColumn.Name.ToCamelCase() %>, confirm, callback){
+    if (!<%= idColumn.Name.ToCamelCase() %>) { return callback('<%= idColumn.Name.ToCamelCase() %> required'); }
+    if (<%= ValidatorMethod[idColumn.NativeType] %>(<%= idColumn.Name.ToCamelCase() %>)) { return callback('<%= idColumn.Name.ToCamelCase() %> invalid'); }
+
+    if (confirm === true) {
+        <%= CurrentTable.Name.ToPascalCase() %>.find({ <%= FieldNameOverrides[idColumn.Name.ToCamelCase()] %>: <%= idColumn.Name.ToCamelCase() %> }).remove(callback);
+    } else {
+        callback('killOne operation not confirmed');
+    }
+}
+
+var killAll = function (confirm, callback){
+    if (confirm === true) {
+        <%= CurrentTable.Name.ToPascalCase() %>.find({}).remove(callback);
+    } else {
+        callback('killAll operation not confirmed');
+    }
+}
+<%    
+    }
+
+    // ============
+    // KILL - END
+    // ============
+    
+    
+    
+    
+    
+    
+    // =======================
+    // UTILITY - ToDto - BEGIN
+    // =======================
+    
+    operations.Add("toDto");
+
+    varMode = FilterMode.ToDto;
+    columns = CurrentTable.Filter(varMode);
+    
+%>
+
+var toDto = function (<%= CurrentTable.Name.ToCamelCase() %>){
+    var <%= CurrentTable.Name.ToCamelCase() %>Dto = {
+<%
+    
+    foreach (var column in columns)
+    {
+        var eol = (column == columns[columns.Count - 1]) ? string.Empty : ",";
+%>
+        <%= column.Name.ToCamelCase() %>: <%= CurrentTable.Name.ToCamelCase() %>.<%= FieldNameOverrides[column.Name.ToCamelCase()] %><%= eol %>
+<%
+    }
+%>    
+        };
+    return <%= CurrentTable.Name.ToCamelCase() %>Dto;
+};
+<%
+    // =======================
+    // UTILITY - ToDto - END
+    // =======================
+
+%>
+
+module.exports = {
+<%
+    foreach (var operation in operations) 
+    {
+        var isLast = operation.Equals(operations[operations.Count - 1], StringComparison.OrdinalIgnoreCase);
+%>
+    <%= operation %>: <%= operation %><% if (!isLast){ %>,<% } %>
+<%
+    }
+%>
+}

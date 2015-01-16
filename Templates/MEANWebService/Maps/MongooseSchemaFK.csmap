@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<codeSmith xmlns="http://www.codesmithtools.com/schema/csmap.xsd">
+  <map caseSensitive="false" returnKeyWhenNotFound="true">
+    <item>
+      <key>uniqueidentifier</key>
+      <value>type: String, lowercase: true, trim: true</value>
+    </item>
+    <item>
+      <key>int</key>
+      <value>type: Number, min: 1</value>
+    </item>
+    <item>
+      <key>bigint</key>
+      <value>type: Number, min: 1</value>
+    </item>
+    <item>
+      <key>char</key>
+      <value>type: String, trim: 1, uppercase: true</value>
+    </item>
+    <item>
+      <key>varchar</key>
+      <value>type: String, trim: 1, uppercase: true</value>
+    </item>
+  </map>
+</codeSmith>

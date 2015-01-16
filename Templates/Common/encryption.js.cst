@@ -1,0 +1,55 @@
+﻿<%-- 
+Name:   encryption.js.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Desc:   Utility file for handling basic encryption in JavaScript projects.
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
+<%@ Property Name="OutputDirectory" Type="System.String" Optional="True" %>
+<%@ Property Name="OutputVersioning" Type="System.Boolean" Optional="True" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="ProjectName" Type="System.String" Optional="True" %>
+<%@ Property Name="VersionText" Type="System.String" Optional="True" %>
+<%@ Property Name="ProjectDescription" Type="System.String" Optional="True" %>
+<%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%-- 03. Dev Config --%>
+<%@ Property Name="DevHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="DevHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="DevDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="DevDbName" Type="System.String" Optional="True" %>
+
+<%-- 03. Prod Config --%>
+<%@ Property Name="ProdHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="ProdDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdDbName" Type="System.String" Optional="True" %>
+
+<%-- Local Properties --%>
+<%@ Property Name="FileName" Type="System.String" Optional="True" %>
+<!-- #include file="Includes\Header-JavaScript.cst" -->
+var crypto = require('crypto');
+
+exports.createSalt = function() {
+    return crypto.randomBytes(32).toString('base64');
+}
+
+exports.hashPwd = function(salt, pwd) {
+    var hmac = crypto.createHmac('sha1', salt);
+    return hmac.update(pwd).digest('hex');
+}
+
+exports.createCode = function(totalLength, chars) {
+    var rnd = crypto.randomBytes(totalLength),
+        value = new Array(totalLength),
+        len = chars.length;
+
+    for (var i = 0; i < totalLength; i++) {
+        value[i] = chars[rnd[i] % len]
+    };
+
+    return value.join('');
+}
