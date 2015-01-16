@@ -33,7 +33,7 @@ Desc:
 
 
 
-<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="../../Source/Projects/SkydiverFL.Extensions.CodeSmith/bin/Debug" %>
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
 
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="CodeSmith.BaseTemplates" %>

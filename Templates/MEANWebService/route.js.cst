@@ -39,7 +39,7 @@ Desc:
 <%@ Property Name="FileName" Type="System.String" Optional="True" %>
 
 
-<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="../../Source/Projects/SkydiverFL.Extensions.CodeSmith/bin/Debug" %>
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
 
 <%@ Map Name="DeleteFlagDefaultValue" Src="Maps\DeleteFlagDefaultValue.csmap" %>
 <%@ Map Name="DeleteFlagDeletedValue" Src="Maps\DeleteFlagDeletedValue.csmap" %>

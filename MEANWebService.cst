@@ -36,7 +36,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Property Name="RepoRoutes" Type="System.Boolean" Category="04. Options" Default="True" Description="Routes calling upon the data repository will be generated." OnChanged="OnSetupChanged" %>
 <%@ Property Name="RepoRoutesPrefix" Type="System.String" Category="04. Options" Default="repo" Description="URI prefix for web service routes using the data repository" OnChanged="OnSetupChanged" %>
 
-<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="Source/Projects/SkydiverFL.Extensions.CodeSmith/bin/Debug" %>
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="Templates\Common" %>
 
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="CodeSmith.BaseTemplates" %>

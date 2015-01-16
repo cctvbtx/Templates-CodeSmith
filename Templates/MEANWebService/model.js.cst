@@ -38,7 +38,7 @@ Desc:
 <%@ Map Name="MongooseSchemaFK" Src="Maps\MongooseSchemaFK.csmap" %>
 <%@ Map Name="MongooseSchemaPK" Src="Maps\MongooseSchemaPK.csmap" %>
 
-<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="../../Source/Projects/SkydiverFL.Extensions.CodeSmith/bin/Debug" %>
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
 
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="CodeSmith.BaseTemplates" %>
