@@ -96,6 +96,8 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
         if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
         
+        var strategy = new PreserveRegionsMergeStrategy("^[ \\t]*[ \\s]*\"?(?i:Custom)\"?", "JavaScript");
+        
         fileName = "readme.txt";
         file = new OutputFile(Path.Combine(outputDir, fileName));
         ReadMeTemplate _ReadMeTemplate = this.Create<ReadMeTemplate>();
