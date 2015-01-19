@@ -1,4 +1,4 @@
-# MEAN Web Service Template v0.1.0
+﻿# MEAN Web Service Template v0.1.0
 
 ## Summary
 
@@ -26,6 +26,13 @@ Generated code base uses jwt-simple to decode the Authorization header and assum
 
 ## Future Goals
 None.  Initial release needs to be completed and tested.
+
+## Updates
+### 20150119
+- Added `countAll()` operation to repository template.
+- Fixed identifier column logic in `create()` / `init()` repository operations.
+- Fixed `trim()` operation in strings utility template.
+- Fixed _id ObjectId problem on generated models (specifying _id prevents auto-increment).
 
 ---
 

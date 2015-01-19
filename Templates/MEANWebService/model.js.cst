@@ -68,7 +68,7 @@ var <%= CurrentTable.Name.ToCamelCase() %>Schema = new mongoose.Schema({
             if (column.IsIdentityColumn())
             {
 %>
-    _id: { type: mongoose.Schema.ObjectId }<%= eol %>   // Source column: <%= column.Name %>
+    //_id: { type: mongoose.Schema.ObjectId, default: function () { return new mongoose.Schema.ObjectId(); }  }<%= eol %>   // Source column: <%= column.Name %>
 <%
             }
             else

@@ -38,6 +38,7 @@ Desc:
 <%@ Map Name="DeleteFlagDeletedValue" Src="Maps\DeleteFlagDeletedValue.csmap" %>
 <%@ Map Name="FieldNameOverrides" Src="Maps\FieldNameOverrides.csmap" %>
 <%@ Map Name="ValidatorMethod" Src="Maps\ValidatorMethod.csmap" %>
+<%@ Map Name="IdentColumnDefaultValue" Src="Maps\IdentColumnDefaultValue.csmap" %>
 
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="CodeSmith.BaseTemplates" %>
@@ -90,8 +91,40 @@ Desc:
 var <%= CurrentTable.Name.ToPascalCase() %> = require('<%= upDirString %>models/<%= folderName %><%= CurrentTable.Name.ToPascalCase() %>Model');
 
 var strings = require('<%= upDirString %>utilities/strings'),
+    uuid = require('node-uuid'),
     validator = require('validator');
 <%
+    // =================
+    // COUNT ALL - BEGIN
+    // =================
+
+    operationName = "countAll";
+    operations.Add(operationName);
+%>
+
+var <%= operationName %> = function(<% if(hasDelFlag){ %>includeDeleted, <% } %>callback){
+
+    var vars = {};
+<%
+    if (hasDelFlag)
+    {
+%>
+    if (includeDeleted === true){ } else { vars.<%= FieldNameOverrides[delFlagName.ToCamelCase()] %> = <%= DeleteFlagDefaultValue[delFlag.NativeType] %>; }
+<%
+    }
+%>
+
+    <%= CurrentTable.Name.ToPascalCase() %>.count(vars, callback);
+}
+<%
+    // =================
+    // COUNT ALL - END
+    // =================
+    
+    
+    
+    
+    
     // ====================
     // GET BY INDEX - BEGIN
     // ====================
@@ -144,11 +177,20 @@ var <%= operationName %> = function (<%= CurrentTable.Filter(FilterMode.Create).
     if (hasDelFlag && !columns.Contains(delFlag)){ columns.Add(delFlag); }
 %>
 <!-- #include file="Includes\Columns-ToJsonVars.cst" -->
+<%
+    var uidColumn = CurrentTable.GetSingularIdentifierColumn();
+    if (uidColumn != null)
+    {
+%>
+    vars.<%= FieldNameOverrides[uidColumn.Name.ToCamelCase()] %> = <%= IdentColumnDefaultValue[uidColumn.NativeType] %>;
+<%
+    }
+%>
 
     var <%= CurrentTable.Name.ToCamelCase() %> = new <%= CurrentTable.Name.ToPascalCase() %>(vars);
         
     <%= CurrentTable.Name.ToCamelCase() %>.save(callback);
-}
+};
 <%
     
     // ==============
@@ -184,7 +226,7 @@ var <%= operationName %> = function (<%= CurrentTable.Filter(FilterMode.Create).
         varMode = FilterMode.Create;
         columns = CurrentTable.Filter(varMode);
         
-        var indices = CurrentTable.Indexes.Where(x => x.IsUnique && !x.IsPrimaryKey);
+        var indices = CurrentTable.Indexes.Where(x => x.IsUnique && !x.IsPrimaryKey && x.MemberColumns[0].Column != CurrentTable.GetSingularIdentifierColumn());
         var count = 0;
 %>
 
@@ -198,7 +240,7 @@ var <%= operationName %> = function (<%= CurrentTable.Filter(FilterMode.Create).
         {
             count++;
 %>
-<%= string.Empty.PadLeft(tabSpaceCount * count, ' ') %>findOne(<%= index.Filter(FilterMode.Select).ToParamsArray() %>, function(err, existing){ 
+<%= string.Empty.PadLeft(tabSpaceCount * count, ' ') %>findOneBy<%= index.CreateUniqueName() %>(<%= index.Filter(FilterMode.Select).ToParamsArray() %><% if(hasDelFlag){ %>, false<% } %>, function(err, existing){ 
 <%= string.Empty.PadLeft(tabSpaceCount * count, ' ') %>    if (err){ return callback(err); }
 <%= string.Empty.PadLeft(tabSpaceCount * count, ' ') %>    if (existing){ return callback(foundError, existing); }
 <%
@@ -215,7 +257,7 @@ var <%= operationName %> = function (<%= CurrentTable.Filter(FilterMode.Create).
             count--;
         }
 %>    
-}
+};
 <%
     }
     

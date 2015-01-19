@@ -39,7 +39,7 @@ function isNullOrWhiteSpace (value) {
 }
 
 function trim (value) {
-    return isNullOrWhiteSpace(value) ? value.trim() : null;
+    return isNullOrWhiteSpace(value) ? null : value.trim();
 }
 
 function isValidString(value, allowedChars, isCaseSensative, minLength, maxLength){

@@ -59,7 +59,7 @@ Desc:
         foreach (var table in tables)
         {
 %>
-<% if((tables.First() == table)){ %>var <% } else { %>    <% } %><%= table.Name.ToPascalCase() %> = require('../models/<%= table.Name.ToPascalCase() %>Model')<% if ((tables.Last() == table)){ %>;<% } else { %>,<% } %>
+<% if((tables.First() == table)){ %>var <% } else { %>    <% } %><%= table.Name.ToPascalCase() %> = require('../models/<%= table.Name.ToPascalCase() %>Model'), <%= table.Name.ToPascalCase() %>Repo = require('../repos/<%= table.Name.ToPascalCase() %>Repo')<% if ((tables.Last() == table)){ %>;<% } else { %>,<% } %>
 <%
         }
 %>
@@ -76,7 +76,7 @@ Desc:
         foreach (var table in tables)
         {
 %>
-<% if((tables.First() == table)){ %>var <% } else { %>    <% } %><%= table.Name.ToPascalCase() %> = require('../models/<%= owner.ToPascalCase() %>/<%= table.Name.ToPascalCase() %>Model')<% if ((tables.Last() == table)){ %>;<% } else { %>,<% } %>
+<% if((tables.First() == table)){ %>var <% } else { %>    <% } %><%= table.Name.ToPascalCase() %> = require('../models/<%= owner.ToPascalCase() %>/<%= table.Name.ToPascalCase() %>Model'), <%= table.Name.ToPascalCase() %>Repo = require('../repos/<%= owner.ToPascalCase() %>/<%= table.Name.ToPascalCase() %>Repo')<% if ((tables.Last() == table)){ %>;<% } else { %>,<% } %>
 <%
         }
 %>
@@ -87,8 +87,12 @@ Desc:
 var encryption = require('../utilities/encryption'),
     uuid = require('node-uuid');
 
-module.exports = function(){
+var config = {};
+
+module.exports = function(config){
+
+    config = config;
 
     var now = new Date();
 
-}
+};
