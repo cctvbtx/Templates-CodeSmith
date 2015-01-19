@@ -35,7 +35,7 @@ Desc:   Utility file for handling strings in JavaScript projects.
 
 <!-- #include file="Includes\Header-JavaScript.cst" -->
 function isNullOrWhiteSpace (value) {
-    return (!value || value.trim().length < 1)
+    return (!value || (value.trim && value.trim().length < 1));
 }
 
 function trim (value) {

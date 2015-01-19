@@ -18,6 +18,7 @@ Audit columns will be verified like any other column.
                 {
                     case "uniqueidentifier":
                     case "int":
+                    case "bigint":
                     case "float":
                     case "datetime":
 %>
@@ -48,10 +49,21 @@ Audit columns will be verified like any other column.
                     case "bigint":
                     case "float":
                     case "datetime":
+                        if (column.IsIdentityColumn() || (column.IsForeignKeyMember && column.GetPrimaryColumn().IsIdentityColumn()))
+                        {
+%>
+    if (<%= column.Name.ToCamelCase() %> && (<%= column.Name.ToCamelCase() %> instanceof mongoose.Types.ObjectId)){ <%= column.Name.ToCamelCase() %> = <%= column.Name.ToCamelCase() %>.toString(); }
+    if (!<%= column.Name.ToCamelCase() %> || strings.isNullOrWhitespace(<%= column.Name.ToCamelCase() %>)){ return callback('<%= column.Name.ToCamelCase() %> required'); }
+    if (!mongoose.Types.ObjectId.isValid(<%= column.Name.ToCamelCase() %>)){ return callback('<%= column.Name.ToCamelCase() %> invalid'); }
+<%
+                        }
+                        else
+                        {
 %>
     if (!<%= column.Name.ToCamelCase() %> || strings.isNullOrWhitespace(<%= column.Name.ToCamelCase() %>)){ return callback('<%= column.Name.ToCamelCase() %> required'); }
     if (!<%= ValidatorMethod[column.NativeType] %>(<%= column.Name.ToCamelCase() %>)){ return callback('<%= column.Name.ToCamelCase() %> invalid'); }
 <%
+                        }
                         break;
                     case "char":
                     case "varchar":

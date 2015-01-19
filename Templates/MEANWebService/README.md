@@ -33,6 +33,7 @@ None.  Initial release needs to be completed and tested.
 - Fixed identifier column logic in `create()` / `init()` repository operations.
 - Fixed `trim()` operation in strings utility template.
 - Fixed _id ObjectId problem on generated models (specifying _id prevents auto-increment).
+- Fixed ObjectId as PK validation in repository operations.
 
 ---
 

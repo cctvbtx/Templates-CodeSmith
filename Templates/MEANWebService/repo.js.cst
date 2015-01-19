@@ -90,7 +90,8 @@ Desc:
 %>
 var <%= CurrentTable.Name.ToPascalCase() %> = require('<%= upDirString %>models/<%= folderName %><%= CurrentTable.Name.ToPascalCase() %>Model');
 
-var strings = require('<%= upDirString %>utilities/strings'),
+var mongoose = require('mongoose'),
+    strings = require('<%= upDirString %>utilities/strings'),
     uuid = require('node-uuid'),
     validator = require('validator');
 <%

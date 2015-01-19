@@ -61,5 +61,17 @@
       <key>value</key>
       <value>val</value>
     </item>
+    <item>
+      <key>domainText</key>
+      <value>name</value>
+    </item>
+    <item>
+      <key>domainId</key>
+      <value>did</value>
+    </item>
+    <item>
+      <key>addressText</key>
+      <value>name</value>
+    </item>
   </map>
 </codeSmith>

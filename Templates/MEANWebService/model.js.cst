@@ -78,6 +78,12 @@ var <%= CurrentTable.Name.ToCamelCase() %>Schema = new mongoose.Schema({
 <%
             }
         }
+        else if (column.IsForeignKeyMember && column.GetPrimaryColumn().IsIdentityColumn())
+        {
+%>
+    <%= FieldNameOverrides[column.Name.ToCamelCase()] %>: { type: mongoose.Schema.ObjectId, required: <%= (!column.AllowDBNull).ToString().ToLower() %>, rel: '<%= column.GetPrimaryTable().Name.ToPascalCase() %>' }<%= eol %>   // Source column: <%= column.Name %>
+<%
+        }
         else if (column.IsForeignKeyMember)
         {
 %>

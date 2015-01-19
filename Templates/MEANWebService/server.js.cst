@@ -63,7 +63,15 @@ require('./server/config/express.config')(app, config);
 
 require('./server/config/mongoose.config')(config);
 
-// require('./server/config/mongoose.seed')(config);
+file.walkSync(path.join(__dirname, 'server', 'config'), function(dirPath, dirs, files){
+    files.forEach(function(file){
+    	if (file.indexOf('.seed.') >= 0)
+    	{
+    	    if (config.logLevel == 'dev'){ console.log(path.join(dirPath, file)); }
+	        require(path.join(dirPath, file))(config);
+    	}
+    });
+});
 
 file.walkSync(path.join(__dirname, 'server', 'routes'), function(dirPath, dirs, files){
     files.forEach(function(file){
