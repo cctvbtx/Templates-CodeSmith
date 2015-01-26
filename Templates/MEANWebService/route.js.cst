@@ -70,6 +70,23 @@ Desc:
 
     var tabSpaceCount = 4;
 
+    var idColumn = CurrentTable.HasSingleIdentifierColumn() 
+        ? CurrentTable.GetSingularIdentifierColumn()
+        : CurrentTable.HasSingularPrimaryKey() 
+            ? CurrentTable.GetSingularKeyColumn()
+            : null;
+    var idColumnName = idColumn != null ? idColumn.Name : string.Empty;
+
+    var hasUserId = CurrentTable.HasVersionUserColumn();
+    var userId = CurrentTable.GetAuditColumn(AuditColumnType.VersionMember);
+    var userIdName = userId != null ? userId.Name : string.Empty;
+
+    var hasDelFlag = CurrentTable.HasDeleteFlag();
+    var delFlag = hasDelFlag
+        ? CurrentTable.GetDeleteFlagColumn()
+        : null;
+    var delFlagName = delFlag != null ? delFlag.Name : string.Empty;
+
     var upDirString = CurrentTable.HasDefaultOnwer()
         ? "../"
         : "../../";
@@ -98,20 +115,6 @@ module.exports = function (app, config) {
     config = config;
 
 <%
-    var idColumn = CurrentTable.HasSingleIdentifierColumn() 
-        ? CurrentTable.GetSingularIdentifierColumn()
-        : CurrentTable.HasSingularPrimaryKey() 
-            ? CurrentTable.GetSingularKeyColumn()
-            : null;
-
-    var idColumnName = idColumn != null ? idColumn.Name : string.Empty;
-
-    var delFlag = CurrentTable.HasDeleteFlag()
-        ? CurrentTable.GetDeleteFlagColumn()
-        : null;
-
-    var delFlagName = delFlag != null ? delFlag.Name : string.Empty;
-
     if (DirectRoutes)
     {
 %>
@@ -121,7 +124,7 @@ module.exports = function (app, config) {
 
     // Get all
     app.get('/<%= DirectRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>', function(req, res){
-        <%= CurrentTable.Name.ToPascalCase() %>.find({ <% if(CurrentTable.HasDeleteFlag()){ %><%= FieldNameOverrides[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %>: <%= DeleteFlagDefaultValue[CurrentTable.GetDeleteFlagColumn().NativeType] %><% } %> }, function(err, items){
+        <%= CurrentTable.Name.ToPascalCase() %>.find({ <% if(hasDelFlag){ %><%= FieldNameOverrides[delFlagName.ToCamelCase()] %>: <%= DeleteFlagDefaultValue[delFlag.NativeType] %><% } %> }, function(err, items){
             if (err) { res.sendStatus(500); return; }
             if (!items || items.length < 1) { res.sendStatus(404); return; }
 
@@ -198,9 +201,14 @@ module.exports = function (app, config) {
             
             operationName = "find" + (index.IsUnique ? "One" : string.Empty) + "By" + index.CreateUniqueName();
             operations.Add(operationName);
+            
+            var incDelFlag = (hasDelFlag && 
+                (!index.IsUnique || 
+                    (index.MemberColumns.Count == 1 && 
+                        (index.MemberColumns[0] == idColumn || index.MemberColumns[0] == CurrentTable.GetSingularKeyColumn()))));
 %>
 
-    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/<%= operationName %>'<% if (CurrentTable.HasVersionUserColumn()){ %>, auth.enforceAuthentication<% } %>, function(req, res){
+    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/<%= operationName %>'<% if (hasUserId){ %>, auth.enforceAuthentication<% } %>, function(req, res){
 
         if (!req.body){ res.status(400).Send({ msg: 'Bad request format' }); return; }
 
@@ -211,11 +219,16 @@ module.exports = function (app, config) {
         var <%= column.Name.ToCamelCase() %> = (req.body.<%= column.Name.ToCamelCase() %> || null);
 <%
         }
+        
+        if (incDelFlag)
+        {
+%>
+        var includeDeleted = (req.body.includeDeleted || false);
+<%
+        }
 %>        
         
-<%
-%>
-        <%= CurrentTable.Name.ToPascalCase() %>Repo.<%= operationName %>(<%= index.ToParamsArray(true) %>, function(err, item){
+        <%= CurrentTable.Name.ToPascalCase() %>Repo.<%= operationName %>(<%= index.ToParamsArray(incDelFlag) %>, function(err, item){
             if (err && err.message) { console.log(err); res.status(500).send({ message: err.message }); return; }
             if (err) { console.log(err); res.status(500).send({ message: err }); return; }
 
@@ -242,9 +255,14 @@ module.exports = function (app, config) {
 
         varMode = FilterMode.Create;
         columns = CurrentTable.Filter(varMode);
+        
+        if (hasUserId && columns.Contains(userId))
+        {
+            columns.Remove(userId);
+        }
 %>
 
-    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/<%= operationName %>'<% if (CurrentTable.HasVersionUserColumn()){ %>, auth.enforceAuthentication<% } %>, function(req, res){
+    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/<%= operationName %>'<% if (hasUserId){ %>, auth.enforceAuthentication<% } %>, function(req, res){
 
         if (!req.body){ res.status(400).Send({ msg: 'Bad request format' }); return; }
 
@@ -257,7 +275,7 @@ module.exports = function (app, config) {
         }
 %>        
         
-        <%= CurrentTable.Name.ToPascalCase() %>Repo.<%= operationName %>(<%= columns.ToParamsArray(true) %>, function(err, item){
+        <%= CurrentTable.Name.ToPascalCase() %>Repo.<%= operationName %>(<%= columns.ToParamsArray(false) %><% if(hasUserId){ %>, req.body.userId<% } %>, function(err, item){
             if (err && err.code == 11000){ res.sendStatus(409); return; }
             if (err && err.message) { console.log(err); res.status(500).send({ message: err.message }); return; }
             if (err) { console.log(err); res.status(500).send({ message: err }); return; }
@@ -303,9 +321,14 @@ module.exports = function (app, config) {
             
             var indices = CurrentTable.Indexes.Where(x => x.IsUnique && !x.IsPrimaryKey);
             var count = 0;
+        
+            if (hasUserId && columns.Contains(userId))
+            {
+                columns.Remove(userId);
+            }
 %>
 
-    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/<%= operationName %>'<% if (CurrentTable.HasVersionUserColumn()){ %>, auth.enforceAuthentication<% } %>, function(req, res){
+    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/<%= operationName %>'<% if (hasUserId){ %>, auth.enforceAuthentication<% } %>, function(req, res){
 
         if (!req.body){ res.status(400).Send({ msg: 'Bad request format' }); return; }
 
@@ -317,10 +340,9 @@ module.exports = function (app, config) {
 <%
         }
 %>        
-        
-<%
-%>
-        <%= CurrentTable.Name.ToPascalCase() %>Repo.<%= operationName %>(<%= columns.ToParamsArray(true) %>, function(err, item){
+        var suppressError = (req.body.suppressError || false);
+
+        <%= CurrentTable.Name.ToPascalCase() %>Repo.<%= operationName %>(<%= columns.ToParamsArray(false) %><% if(hasUserId){ %>, suppressError, req.body.userId<% } %>, function(err, item){
             if (err && err.code == 11000){ res.sendStatus(409); return; }
             if (err && err.message) { console.log(err); res.status(500).send({ message: err.message }); return; }
             if (err) { console.log(err); res.status(500).send({ message: err }); return; }
@@ -345,13 +367,24 @@ module.exports = function (app, config) {
         // UPDATE - BEGIN
         // ==============
 
-        operations.Add("update");
+        operationName = "updatePartial";
+        operations.Add(operationName);
 
         varMode = FilterMode.Update;
         columns = CurrentTable.Filter(varMode);
+        
+        if (idColumn != CurrentTable.GetSingularKeyColumn() && columns.Contains(CurrentTable.GetSingularKeyColumn()))
+        {
+            columns.Remove(CurrentTable.GetSingularKeyColumn());
+        }
+        
+        if (hasUserId && columns.Contains(userId))
+        {
+            columns.Remove(userId);
+        }
 %>
 
-    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/<%= operationName %>'<% if (CurrentTable.HasVersionUserColumn()){ %>, auth.enforceAuthentication<% } %>, function(req, res){
+    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/<%= operationName %>'<% if (hasUserId){ %>, auth.enforceAuthentication<% } %>, function(req, res){
 
         if (!req.body){ res.status(400).Send({ msg: 'Bad request format' }); return; }
 
@@ -366,7 +399,7 @@ module.exports = function (app, config) {
         
 <%
 %>
-        <%= CurrentTable.Name.ToPascalCase() %>Repo.<%= operationName %>(<%= columns.ToParamsArray(true) %>, function(err, item){
+        <%= CurrentTable.Name.ToPascalCase() %>Repo.<%= operationName %>(<%= columns.ToParamsArray(false) %><% if(hasUserId){ %>, req.body.userId<% } %>, function(err, item){
             if (err && err.message) { console.log(err); res.status(500).send({ message: err.message }); return; }
             if (err) { console.log(err); res.status(500).send({ message: err }); return; }
 
@@ -403,11 +436,11 @@ module.exports = function (app, config) {
             operations.Add("purgeAll");
 %>
 
-    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/delete'<% if (CurrentTable.HasVersionUserColumn()){ %>, auth.enforceAuthentication<% } %>, function(req, res){
+    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/delete'<% if (hasUserId){ %>, auth.enforceAuthentication<% } %>, function(req, res){
 
         if (!req.body){ res.status(400).Send({ msg: 'Bad request format' }); return; }
         
-        <%= CurrentTable.Name.ToPascalCase() %>Repo.delete(req.body.<%= idColumn.Name.ToCamelCase() %><% if (CurrentTable.HasVersionUserColumn()){ %>, req.body.userId<% } %>, function(err, item){
+        <%= CurrentTable.Name.ToPascalCase() %>Repo.deleteOne(req.body.<%= idColumn.Name.ToCamelCase() %><% if (hasUserId){ %>, req.body.userId<% } %>, function(err, item){
             if (err && err.message) { console.log(err); res.status(500).send({ message: err.message }); return; }
             if (err) { console.log(err); res.status(500).send({ message: err }); return; }
 
@@ -415,11 +448,15 @@ module.exports = function (app, config) {
         });
     });
 
-    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/purgeOne'<% if (CurrentTable.HasVersionUserColumn()){ %>, auth.enforceAuthentication<% } %>, function(req, res){
+    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/purgeOne'<% if (hasUserId){ %>, auth.enforceAuthentication<% } %>, function(req, res){
 
         if (!req.body){ res.status(400).Send({ msg: 'Bad request format' }); return; }
         
-        <%= CurrentTable.Name.ToPascalCase() %>Repo.purgeOne(req.body.<%= idColumn.Name.ToCamelCase() %>, req.body.isConfirmed<% if (CurrentTable.HasVersionUserColumn()){ %>, req.body.userId<% } %>, function(err, item){
+<% if (hasUserId){ %>
+        // TODO: HANDLE req.body.userId
+<% } %>        
+        
+        <%= CurrentTable.Name.ToPascalCase() %>Repo.purgeOne(req.body.<%= idColumn.Name.ToCamelCase() %>, req.body.isConfirmed, function(err, item){
             if (err && err.message) { console.log(err); res.status(500).send({ message: err.message }); return; }
             if (err) { console.log(err); res.status(500).send({ message: err }); return; }
 
@@ -427,11 +464,15 @@ module.exports = function (app, config) {
         });
     });
 
-    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/purgeAll'<% if (CurrentTable.HasVersionUserColumn()){ %>, auth.enforceAuthentication<% } %>, function(req, res){
+    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/purgeAll'<% if (hasUserId){ %>, auth.enforceAuthentication<% } %>, function(req, res){
 
         if (!req.body){ res.status(400).Send({ msg: 'Bad request format' }); return; }
         
-        <%= CurrentTable.Name.ToPascalCase() %>Repo.purgeAll(req.body.<%= idColumn.Name.ToCamelCase() %>, req.body.isConfirmed<% if (CurrentTable.HasVersionUserColumn()){ %>, req.body.userId<% } %>, function(err, item){
+<% if (hasUserId){ %>
+        // TODO: HANDLE req.body.userId
+<% } %>        
+        
+        <%= CurrentTable.Name.ToPascalCase() %>Repo.purgeAll(req.body.isConfirmed, function(err, item){
             if (err && err.message) { console.log(err); res.status(500).send({ message: err.message }); return; }
             if (err) { console.log(err); res.status(500).send({ message: err }); return; }
 
@@ -457,11 +498,15 @@ module.exports = function (app, config) {
     
 %>
 
-    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/killOne'<% if (CurrentTable.HasVersionUserColumn()){ %>, auth.enforceAuthentication<% } %>, function(req, res){
+    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/killOne'<% if (hasUserId){ %>, auth.enforceAuthentication<% } %>, function(req, res){
 
         if (!req.body){ res.status(400).Send({ msg: 'Bad request format' }); return; }
         
-        <%= CurrentTable.Name.ToPascalCase() %>Repo.killOne(req.body.<%= idColumn.Name.ToCamelCase() %>, req.body.isConfirmed<% if (CurrentTable.HasVersionUserColumn()){ %>, req.body.userId<% } %>, function(err, item){
+<% if (hasUserId){ %>
+        // TODO: HANDLE req.body.userId
+<% } %>        
+        
+        <%= CurrentTable.Name.ToPascalCase() %>Repo.killOne(req.body.<%= idColumn.Name.ToCamelCase() %>, req.body.isConfirmed, function(err, item){
             if (err && err.message) { console.log(err); res.status(500).send({ message: err.message }); return; }
             if (err) { console.log(err); res.status(500).send({ message: err }); return; }
 
@@ -469,11 +514,15 @@ module.exports = function (app, config) {
         });
     });
 
-    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/killAll'<% if (CurrentTable.HasVersionUserColumn()){ %>, auth.enforceAuthentication<% } %>, function(req, res){
+    app.post('/<%= RepoRoutesPrefix%>/<%= CurrentTable.Name.ToHypehatedLowercase() %>/killAll'<% if (hasUserId){ %>, auth.enforceAuthentication<% } %>, function(req, res){
 
         if (!req.body){ res.status(400).Send({ msg: 'Bad request format' }); return; }
         
-        <%= CurrentTable.Name.ToPascalCase() %>Repo.killAll(req.body.<%= idColumn.Name.ToCamelCase() %>, req.body.isConfirmed<% if (CurrentTable.HasVersionUserColumn()){ %>, req.body.userId<% } %>, function(err, item){
+<% if (hasUserId){ %>
+        // TODO: HANDLE req.body.userId
+<% } %>        
+        
+        <%= CurrentTable.Name.ToPascalCase() %>Repo.killAll(req.body.isConfirmed, function(err, item){
             if (err && err.message) { console.log(err); res.status(500).send({ message: err.message }); return; }
             if (err) { console.log(err); res.status(500).send({ message: err }); return; }
 

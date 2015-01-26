@@ -69,15 +69,16 @@ Desc:
         : CurrentTable.HasSingularPrimaryKey() 
             ? CurrentTable.GetSingularKeyColumn()
             : null;
-
     var idColumnName = idColumn != null ? idColumn.Name : string.Empty;
 
-    var hasDelFlag = CurrentTable.HasDeleteFlag();
+    var hasUserId = CurrentTable.HasVersionUserColumn();
+    var userId = CurrentTable.GetAuditColumn(AuditColumnType.VersionMember);
+    var userIdName = userId != null ? userId.Name : string.Empty;
 
+    var hasDelFlag = CurrentTable.HasDeleteFlag();
     var delFlag = hasDelFlag
         ? CurrentTable.GetDeleteFlagColumn()
         : null;
-
     var delFlagName = delFlag != null ? delFlag.Name : string.Empty;
 
     var upDirString = CurrentTable.HasDefaultOnwer()
@@ -103,8 +104,7 @@ var mongoose = require('mongoose'),
     operations.Add(operationName);
 %>
 
-var <%= operationName %> = function(<% if(hasDelFlag){ %>includeDeleted, <% } %>callback){
-
+var <%= operationName %> = function(<% if(hasDelFlag){ %>includeDeleted, <% } %>callback) {
     var vars = {};
 <%
     if (hasDelFlag)
@@ -114,9 +114,8 @@ var <%= operationName %> = function(<% if(hasDelFlag){ %>includeDeleted, <% } %>
 <%
     }
 %>
-
     <%= CurrentTable.Name.ToPascalCase() %>.count(vars, callback);
-}
+};
 <%
     // =================
     // COUNT ALL - END
@@ -139,12 +138,26 @@ var <%= operationName %> = function(<% if(hasDelFlag){ %>includeDeleted, <% } %>
         
         operationName = "find" + (index.IsUnique ? "One" : string.Empty) + "By" + index.CreateUniqueName();
         operations.Add(operationName);
+        
+        var incDelFlag = (hasDelFlag && 
+            (!index.IsUnique || 
+                (index.MemberColumns.Count == 1 && 
+                    (index.MemberColumns[0] == idColumn || index.MemberColumns[0] == CurrentTable.GetSingularKeyColumn()))));
 %>
 
-var <%= operationName %> = function(<%= index.ToParamsArray(true) %>, callback){
+var <%= operationName %> = function(<%= index.ToParamsArray(incDelFlag) %>, callback){
 <!-- #include file="Includes\Columns-ValidateJavacriptParams.cst" -->
 
 <!-- #include file="Includes\Columns-ToJsonVars.cst" -->
+<%
+        if (incDelFlag)
+        {
+%>
+    if (includeDeleted === true){ } else { vars.<%= FieldNameOverrides[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %> = <%= DeleteFlagDefaultValue[CurrentTable.GetDeleteFlagColumn().NativeType] %>; }
+<%
+        }
+%>
+
     <%= CurrentTable.Name.ToPascalCase() %>.find<% if (index.IsUnique){ %>One<% } %>(vars, callback);
 }
 <%
@@ -262,20 +275,20 @@ var <%= operationName %> = function (<%= CurrentTable.Filter(FilterMode.Create).
 <%
     }
     
-    // ================
-    // FIND ANY - END
-    // ================
+    // ============
+    // INIT - END
+    // ============
     
     
     
     
     
     
-    // ==============
-    // UPDATE - BEGIN
-    // ==============
+    // ======================
+    // UPDATE PARTIAL - BEGIN
+    // ======================
 
-    operationName = "update";
+    operationName = "updatePartial";
     operations.Add(operationName);
 
     varMode = FilterMode.Update;
@@ -295,9 +308,9 @@ var <%= operationName %> = function (<%= columns.ToParamsArray() %>, callback){
 }
 <%
     
-    // ==============
-    // UPDATE - END
-    // ==============
+    // ======================
+    // UPDATE PARTIAL - BEGIN
+    // ======================
     
     
     
@@ -352,7 +365,7 @@ var purgeOne = function (<%= idColumn.Name.ToCamelCase() %>, confirm, callback){
     if (!<%= idColumn.Name.ToCamelCase() %>) { return callback('<%= idColumn.Name.ToCamelCase() %> required'); }
     if (<%= ValidatorMethod[idColumn.NativeType] %>(<%= idColumn.Name.ToCamelCase() %>)) { return callback('<%= idColumn.Name.ToCamelCase() %> invalid'); }
 
-    var query = { <%= FieldNameOverrides[idColumn.Name.ToCamelCase()] %>: <%= idColumn.Name.ToCamelCase() %>, <%= FieldNameOverrides[delFlag.Name.ToCamelCase()] %>: <%= DeleteFlagDeletedValue[delFlag.NativeType] %> };
+    var query = { <%= FieldNameOverrides[idColumn.Name.ToCamelCase()] %>: <%= idColumn.Name.ToCamelCase() %>, <%= FieldNameOverrides[delFlag.Name.ToCamelCase()] %>: { '$ne': <%= DeleteFlagDefaultValue[delFlag.NativeType] %> } };
 
     if (confirm === true) {
         <%= CurrentTable.Name.ToPascalCase() %>.find(query).remove(callback);
@@ -362,7 +375,7 @@ var purgeOne = function (<%= idColumn.Name.ToCamelCase() %>, confirm, callback){
 }
 
 var purgeAll = function (confirm, callback){
-    var query = { <%= FieldNameOverrides[delFlag.Name.ToCamelCase()] %>: <%= DeleteFlagDeletedValue[delFlag.NativeType] %> };
+    var query = { <%= FieldNameOverrides[delFlag.Name.ToCamelCase()] %>: { '$ne': <%= DeleteFlagDefaultValue[delFlag.NativeType] %> } };
 
     if (confirm === true) {
         <%= CurrentTable.Name.ToPascalCase() %>.find(query).remove(callback);

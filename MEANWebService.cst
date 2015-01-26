@@ -72,6 +72,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Register Name="ModelTemplate" Template="Templates/MEANWebService/model.js.cst" %>
 <%@ Register Name="RepoTemplate" Template="Templates/MEANWebService/repo.js.cst" %>
 <%@ Register Name="RoutesTemplate" Template="Templates/MEANWebService/route.js.cst" %>
+<%@ Register Name="ProxyTemplate" Template="Templates/MEANWebService/proxy.js.cst" %>
 
 <script runat="template">
 
@@ -246,6 +247,22 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _RoutesTemplate.FileName = fileName;
             _RoutesTemplate.CurrentTable = table;
             _RoutesTemplate.RenderToFile(file, true);
+
+            
+            outputDir = table.HasDefaultOnwer()
+                ? Path.Combine(buildPath + ".Proxies")
+                : Path.Combine(buildPath + ".Proxies", table.Owner.ToPascalCase());
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = table.Name.ToPascalCase() + "Proxy.js";
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            ProxyTemplate _ProxyTemplate = this.Create<ProxyTemplate>();
+            this.CopyPropertiesTo(_ProxyTemplate);
+            _ProxyTemplate.FileName = fileName;
+            _ProxyTemplate.CurrentTable = table;
+            _ProxyTemplate.RenderToFile(file, true);
         }
 
         return true;

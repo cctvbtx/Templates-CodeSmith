@@ -50,11 +50,3 @@ DeleteFlagColumn  ... Will be set depending on varMode variable.
         }
 %>        
     };
-<%
-        if (varMode == FilterMode.Select && CurrentTable.HasDeleteFlag())
-        {
-%>
-    if (includeDeleted === true){ } else { vars.<%= FieldNameOverrides[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %> = <%= DeleteFlagDefaultValue[CurrentTable.GetDeleteFlagColumn().NativeType] %>; }
-<%
-        }
-%>
