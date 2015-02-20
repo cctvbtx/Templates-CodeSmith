@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using CodeSmith.Core.Extensions;
 using SchemaExplorer;
 
@@ -110,6 +111,11 @@ namespace SkydiverFL.Extensions.CodeSmith
 
             return list.ToTableSchemaCollection();
         }
+        public static bool HasChildren(this TableSchema table)
+        {
+            return (table.GetChildren().Count > 0);
+        }
+
         public static TableSchemaCollection GetParents(this TableSchema table)
         {
             var list = new List<TableSchema>();
@@ -122,6 +128,23 @@ namespace SkydiverFL.Extensions.CodeSmith
                 }
             }
             return list.ToTableSchemaCollection();
+        }
+        public static bool HasParents(this TableSchema table)
+        {
+            return (table.GetParents().Count > 0);
+        }
+        public static bool IsRoot(this TableSchema table)
+        {
+            return !table.HasParents();
+        }
+
+        public static TableSchemaCollection GetRoots(this DatabaseSchema database)
+        {
+            return database.Tables.GetRoots();
+        }
+        public static TableSchemaCollection GetRoots(this TableSchemaCollection tables)
+        {
+            return tables.Where(x => x.IsRoot()).ToList().ToTableSchemaCollection();
         }
 
         public static string[] GetOwners(this DatabaseSchema database)

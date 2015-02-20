@@ -37,6 +37,8 @@
     <Reference Include="SchemaExplorer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fd61cdb91609a7a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auditing.cs" />
@@ -46,15 +48,19 @@
     <Compile Include="Enums\NativeTypes.cs" />
     <Compile Include="Filtering.cs" />
     <Compile Include="Helpers\Dates.cs" />
+    <Compile Include="Helpers\JsonFormatter.cs" />
     <Compile Include="Helpers\Strings.cs" />
     <Compile Include="Identification.cs" />
     <Compile Include="Languages\JavaScript.cs" />
+    <Compile Include="Languages\JSON.cs" />
     <Compile Include="Mapping.cs" />
     <Compile Include="Nullables.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Relationships.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

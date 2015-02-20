@@ -1,0 +1,32 @@
+﻿<%-- 
+Name:   schema.json.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Desc:
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="JSON" OutputType="text" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
+<%@ Property Name="IncludeExports" Type="System.Boolean" Optional="False" Default="False" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JSON" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+
+<!-- #include file="..\Common\Includes\Header-JSON.cst" -->
+<% if (IncludeExports) { %>module.exports = <% } %><%= SourceDatabase.ToJsonSchema().FormatAsJson() %>

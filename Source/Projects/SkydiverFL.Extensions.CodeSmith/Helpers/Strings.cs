@@ -76,5 +76,22 @@ namespace SkydiverFL.Extensions.CodeSmith.Helpers
 
             return result;
         }
+
+        public static string FormatAsJson(this string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) { return value; }
+
+            var result = string.Empty;
+            try
+            {
+                result = new JSonPresentationFormatter().Format(value);
+            }
+            catch (Exception ex)
+            {
+                result = ex.Message;
+            }
+
+            return result;
+        }
     }
 }
