@@ -3,7 +3,7 @@ Name:   model.js.cst
 Author: Fred Lackey <fred.lackey@gmail.com>
 Desc:
 --%>
-<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="Text" CompilerVersion="v4.5" Description="" %>
 
 <%-- 02. Project --%>
 <%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
@@ -64,17 +64,57 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 
     var eol = (column == CurrentTable.Columns.Last()) ? string.Empty : ",";
+    var validator = string.Empty;
+    var typeName = string.Empty;
     
     var line = SchemaFieldNames[column.Name.ToCamelCase()] + ": { type: " + ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType]);
     switch ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType])
     {
         case "String":
+            validator = (column.IsPrimaryKeyMember || column.IsForeignKeyMember)
+                ? (column.IsFixedLength() ? "strings.isAlphanumeric" : "strings.isIdentifier")
+                : "strings.isValidString";
+            validator += (column.AllowDBNull ? "OrNull" : string.Empty);
+            
+            typeName = (column.IsPrimaryKeyMember || column.IsForeignKeyMember)
+                ? (column.IsFixedLength() ? "code" : "identifier")
+                : "string";
+            typeName += (column.AllowDBNull ? " or null value" : string.Empty);
+            
             line += ", trim: true";
             line += (column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? ", uppercase: true" : string.Empty;
             line += (column.IsPrimaryKeyMember && !column.IsFixedLength()) ? ", default: uids.newUid" : string.Empty;
+            
+            line += ", validate: [" + validator + ", '" + SchemaFieldNames[column.Name.ToCamelCase()] + " ";
+            line += ((SchemaFieldNames[column.Name.ToCamelCase()] == column.Name.ToCamelCase()) ? "" : "(" + column.Name.ToCamelCase() + ") ");
+            line += "is not a valid " + typeName + "']";
             break;
         case "Date":
+            validator = "strings.isDate" + (column.AllowDBNull ? "OrNull" : string.Empty);
+            typeName = "date" + (column.AllowDBNull ? " or null value" : string.Empty);
+            
             line += column.IsDeleteFlag() ? ", default: null" : string.Empty;
+            
+            line += ", validate: [" + validator + ", '" + SchemaFieldNames[column.Name.ToCamelCase()] + " ";
+            line += ((SchemaFieldNames[column.Name.ToCamelCase()] == column.Name.ToCamelCase()) ? "" : "(" + column.Name.ToCamelCase() + ") ");
+            line += "is not a valid " + typeName + "']";
+            break;
+        case "Number":
+            validator = (column.IsVersionDateColumn() || column.IsDeleteFlag())
+                ? "strings.isUnixDateStamp"
+                : "strings.isNumber";
+            validator += (column.AllowDBNull ? "OrNull" : string.Empty);
+            
+            typeName = (column.IsVersionDateColumn() || column.IsDeleteFlag())
+                ? "unix date stamp"
+                : "number";
+            typeName += (column.AllowDBNull ? " or null value" : string.Empty);
+            
+            // line += column.IsDeleteFlag() ? ", default: null" : string.Empty;
+            
+            line += ", validate: [" + validator + ", '" + SchemaFieldNames[column.Name.ToCamelCase()] + " ";
+            line += ((SchemaFieldNames[column.Name.ToCamelCase()] == column.Name.ToCamelCase()) ? "" : "(" + column.Name.ToCamelCase() + ") ");
+            line += "is not a valid " + typeName + "']";
             break;
         default:
             break;
@@ -110,7 +150,7 @@ if (CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).Count() < 1)
 {
 %>
 
-// NOTE: Table does not have any indices!
+// TABLE DOES NOT HAVE ANY INDICIES!
 <%
 }
 
@@ -182,7 +222,7 @@ foreach (var column in CurrentTable.Columns)
         case "Date":
         case "Number":
         case "Boolean":
-            text = text.Replace("{1}", "!strings." + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
+            text = text.Replace("{1}", "!strings.is" + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
             text = text.Replace("{5}", string.Empty);
             break;
         default:
@@ -216,8 +256,8 @@ foreach (var column in CurrentTable.Columns)
 // ==============
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto = function(item, callback) {
-    if (!item){ return callback(new Error('No item to convert')); }
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto = function(item) {
+    if (!item){ return null; }
     var dto = {};
 <%
 pkCount = 0;
@@ -233,8 +273,18 @@ foreach (var column in CurrentTable.Columns)
     return dto;
 };
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtoFull = function(item, callback) {
-    if (!item){ return callback(new Error('No item to convert')); }
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtos = function(items) {
+    if (!item || !items.length < 1){ return null; }
+    var dtos = [];
+    for(var i = 0; i < items.length; i++)
+    {
+        dtos.push(<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(items[i]));
+    }
+    return dtos;
+};
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtoFull = function(item) {
+    if (!item){ return null; }
     var dto = {
 <%
 pkCount = 0;
@@ -251,6 +301,16 @@ foreach (var column in CurrentTable.Columns)
 %>    
     };
     return dto;
+};
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtosFull = function(items) {
+    if (!item || !items.length < 1){ return null; }
+    var dtos = [];
+    for(var i = 0; i < items.length; i++)
+    {
+        dtos.push(<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtoFull(items[i]));
+    }
+    return dtos;
 };
 <%
 // ==============
@@ -271,8 +331,8 @@ foreach (var column in CurrentTable.Columns)
 // ===============
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem = function(dto, callback) {
-    if (!dto){ return callback(new Error('No DTO to convert')); }
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem = function(dto) {
+    if (!dto){ return null; }
     var item = {};
 <%
 pkCount = 0;
@@ -288,8 +348,18 @@ foreach (var column in CurrentTable.Columns)
     return item;
 };
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItemFull = function(dto, callback) {
-    if (!dto){ return callback(new Error('No DTO to convert')); }
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItems = function(dtos) {
+    if (!dtos || !dtos.length < 1){ return null; }
+    var items = [];
+    for(var i = 0; i < dtos.length; i++)
+    {
+        items.push(<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(dtos[i]));
+    }
+    return items;
+};
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItemFull = function(dto) {
+    if (!dto){ return null; }
     var item = {
 <%
 pkCount = 0;
@@ -306,6 +376,16 @@ foreach (var column in CurrentTable.Columns)
 %>    
     };
     return item;
+};
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItemsFull = function(dtos) {
+    if (!dtos || !dtos.length < 1){ return null; }
+    var items = [];
+    for(var i = 0; i < dtos.length; i++)
+    {
+        items.push(<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItemFull(dtos[i]));
+    }
+    return items;
 };
 <%
 // ===============
@@ -325,13 +405,21 @@ foreach (var column in CurrentTable.Columns)
 // =================
 %>
 
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.getAll = function(callback) {
+    var query = { <% if(CurrentTable.HasDeleteFlag()){ %><%= SchemaFieldNames[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %>: <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %><% } %> };
+    return this.find(query, function(err, items){
+        if (err){ return callback(err); }
+        return callback(null, <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtos(items));
+    });
+};
+
 <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.getById = function(id, callback) {
     var query = { _id: id<% if (CurrentTable.HasDeleteFlag()){ %>, <%= SchemaFieldNames[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %>: <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %><% } %> };
     <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.validateItem(query, function(err){
         if (err){ return callback(err); }
         return this.findOne(query, function(err, item){
             if (err){ return callback(err); }
-            return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(item);
+            return callback(null, <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(item));
         });
     });
 };
@@ -380,7 +468,7 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPkIndex()).OrderBy(x =
         if (err){ return callback(err); }
         return this.find<%= (index.IsUnique ? "One" : "") %>(query, function(err, <%= (index.IsUnique ? "item" : "items") %>){
             if (err){ return callback(err); }
-            return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.<%= (index.IsUnique ? "toDto" : "toDtos") %>(<%= (index.IsUnique ? "item" : "items") %>);
+            return callback(null, <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.<%= (index.IsUnique ? "toDto" : "toDtos") %>(<%= (index.IsUnique ? "item" : "items") %>));
         });
     });
 <%
@@ -442,7 +530,7 @@ foreach (var column in columnsForCreate)
         var newItem = new this(data);
         newItem.save(function(err, item){
             if (err){ return callback(err); }
-            return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(item);
+            return callback(null, <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(item));
         });
     });
 };
@@ -529,15 +617,11 @@ for (int i = indent; i > 0; i--)
 <%
     }
 %>
-    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(queryDto, function(err, query){
-        if (err){ return callback(new Error('Problem with query: ' + err.message)); }
-        <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(updateDto, function(err, query){
-            if (err){ return callback(new Error('Problem with update: ' + err.message)); }
-            return this.findAndUpdate(query, update, function(err, items){
-                if (err){ return callback(err); }
-                return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtos(items);
-            });
-        });
+    var query = <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(queryDto);
+    var update = <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(updateDto);
+    return this.findAndUpdate(query, update, function(err, items){
+        if (err){ return callback(err); }
+        return callback(null, <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtos(items));
     });
 };
 
@@ -557,15 +641,11 @@ for (int i = indent; i > 0; i--)
 <%
     }
 %>
-    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(queryDto, function(err, query){
-        if (err){ return callback(new Error('Problem with query: ' + err.message)); }
-        <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(updateDto, function(err, query){
-            if (err){ return callback(new Error('Problem with update: ' + err.message)); }
-            return this.findOneAndUpdate(query, update, function(err, item){
-                if (err){ return callback(err); }
-                return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(item);
-            });
-        });
+    var query = <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(queryDto);
+    var update = <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(updateDto);
+    return this.findOneAndUpdate(query, update, function(err, item){
+        if (err){ return callback(err); }
+        return callback(null, <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(item));
     });
 };
 <%
@@ -589,7 +669,7 @@ if (!CurrentTable.HasDeleteFlag())
 {
 %>
 
-// TABLE DOES NOT HAVE A DELETE FLAG COLUMN - DELETE METHOD NOT GENERATED
+// TABLE DOES NOT HAVE A DELETE FLAG COLUMN - DELETE METHODS NOT GENERATED
 <%
 }
 else
@@ -612,6 +692,6 @@ else
 // ==============
 %>
 
-var model = mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>', <%= CurrentTable.Name.ToCamelCase() %>Schema);
+var <%= CurrentTable.Name.ToCamelCase() %> = mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>', <%= CurrentTable.Name.ToCamelCase() %>Schema);
 
-module.exports = model;
+module.exports = <%= CurrentTable.Name.ToCamelCase() %>;

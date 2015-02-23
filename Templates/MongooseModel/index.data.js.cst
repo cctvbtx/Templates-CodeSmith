@@ -1,5 +1,5 @@
 ﻿<%-- 
-Name:   index.js.cst
+Name:   index.data.js.cst
 Author: Fred Lackey <fred.lackey@gmail.com>
 Desc:
 --%>
@@ -67,7 +67,7 @@ foreach(var owner in owners)
     var isDefaultOwner = (owner == defaultOwner);
     var tables = SourceDatabase.Tables.Where(x => x.Owner.Equals(owner, StringComparison.OrdinalIgnoreCase)).ToList();
     if (tables.Count < 1){ continue; }
-    
+
     if (!isDefaultOwner)
     {
 %>
@@ -77,18 +77,15 @@ foreach(var owner in owners)
     
     foreach (var table in tables)
     {
-        var eol = (table != tables.Last() || owner != owners.Last())
-            ? ","
-            : string.Empty;
 %>
-    <%= (isDefaultOwner ? "" : "    ") %><%= StringUtil.ToPlural(table.Name).ToCamelCase() %>: <%= StringUtil.ToPlural(table.Name).ToCamelCase() %><%= eol %>
+    <%= (isDefaultOwner ? "" : "    ") %><%= StringUtil.ToPlural(table.Name).ToCamelCase() %>: <%= StringUtil.ToPlural(table.Name).ToCamelCase() %><%= ((table == tables.Last()) ? string.Empty : ",") %>
 <%
     }
     
     if (!isDefaultOwner)
     {
 %>
-    }<%= (owner == owners.Last() ? "" : ",") %>
+    }<%= ((owner == owners.Last()) ? string.Empty : ",") %>
 <%
     }
 }

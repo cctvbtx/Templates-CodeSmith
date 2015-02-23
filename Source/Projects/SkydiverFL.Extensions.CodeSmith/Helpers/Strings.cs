@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security.Policy;
 using CodeSmith.Core.Extensions;
+using CodeSmith.Engine;
 
 namespace SkydiverFL.Extensions.CodeSmith.Helpers
 {
@@ -125,6 +126,13 @@ namespace SkydiverFL.Extensions.CodeSmith.Helpers
             }
 
             return result;
+        }
+
+        public static string ToPlural(this string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) { return value; }
+
+            return StringUtil.ToPlural(value);
         }
     }
 }
