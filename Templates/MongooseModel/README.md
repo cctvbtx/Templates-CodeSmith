@@ -1,4 +1,4 @@
-# Mongoose Model Template v0.1.0
+# Mongoose Model Template v0.1.1
 
 ## Summary
 
@@ -25,8 +25,9 @@ Generated code based runs in any environment supporting NodeJS.
 Need to improve with feedback from experienced Mongoose / MongoDB developers.  Should also add methods for paging and other advanced features.
 
 ## Updates
-None... yet.
+### v0.1.1
+- Added `index.js` and master template
 
 ---
 
-Last updated: 2/23/2015 9:48:22 AM  
+Last updated: 2/23/2015 12:06:07 PM   

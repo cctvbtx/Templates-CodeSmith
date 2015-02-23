@@ -3,13 +3,14 @@ Name:   model.js.cst
 Author: Fred Lackey <fred.lackey@gmail.com>
 Desc:
 --%>
-<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="Text" CompilerVersion="v4.5" Description="" %>
+<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
 
 <%-- 02. Project --%>
 <%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
 
 <%-- Local Properties --%>
 <%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
+<%@ Property Name="FileName" Type="System.String" Optional="True" %>
 
 <%@ Map Name="DefaultsDelFlag" Src="Maps\DefaultsDelFlag.csmap" %>
 <%@ Map Name="SchemaFieldNames" Src="Maps\SchemaFieldNames.csmap" %>

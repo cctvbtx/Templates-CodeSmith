@@ -1,0 +1,96 @@
+﻿<%-- 
+Name:   index.js.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Desc:
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
+<%@ Property Name="OutputDirectory" Type="System.String" Optional="True" %>
+<%@ Property Name="OutputVersioning" Type="System.Boolean" Optional="True" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="ProjectName" Type="System.String" Optional="True" %>
+<%@ Property Name="VersionText" Type="System.String" Optional="True" %>
+<%@ Property Name="ProjectDescription" Type="System.String" Optional="True" %>
+<%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%-- Local Properties --%>
+<%@ Property Name="FileName" Type="System.String" Optional="True" %>
+
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.Engine" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+<%@ Import Namespace="CodeSmith.Engine" %>
+
+<!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+<%
+var owners = SourceDatabase.GetOwners(true);
+var defaultOwner = SourceDatabase.GetDefaultOwner();
+
+foreach(var owner in owners)
+{
+    var isDefaultOwner = (owner == defaultOwner);
+    var tables = SourceDatabase.Tables.Where(x => x.Owner.Equals(owner, StringComparison.OrdinalIgnoreCase)).ToList();
+    if (tables.Count < 1){ continue; }
+%>
+
+// <%= (isDefaultOwner ? "Default (No Schema)" : owner.ToSentence(' ', SentenceCase.Title)) %> (<%= tables.Count %> <%= (tables.Count == 1 ? "table" : "tables") %>)
+<%
+    foreach (var table in tables)
+    {
+%>
+var <%= StringUtil.ToPlural(table.Name).ToCamelCase() %> = require('./<%= (isDefaultOwner ? "" : owner.ToHypehatedLowercase() + "/") %><%= table.Name.ToHypehatedLowercase() %>');
+<%
+    }
+}
+%>
+
+module.exports = {
+<%
+foreach(var owner in owners)
+{
+    var isDefaultOwner = (owner == defaultOwner);
+    var tables = SourceDatabase.Tables.Where(x => x.Owner.Equals(owner, StringComparison.OrdinalIgnoreCase)).ToList();
+    if (tables.Count < 1){ continue; }
+    
+    if (!isDefaultOwner)
+    {
+%>
+    <%= owner.ToCamelCase() %>: {
+<%
+    }
+    
+    foreach (var table in tables)
+    {
+        var eol = (table != tables.Last() || owner != owners.Last())
+            ? ","
+            : string.Empty;
+%>
+    <%= (isDefaultOwner ? "" : "    ") %><%= StringUtil.ToPlural(table.Name).ToCamelCase() %>: <%= StringUtil.ToPlural(table.Name).ToCamelCase() %><%= eol %>
+<%
+    }
+    
+    if (!isDefaultOwner)
+    {
+%>
+    }<%= (owner == owners.Last() ? "" : ",") %>
+<%
+    }
+}
+%>
+};

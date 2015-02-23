@@ -90,7 +90,15 @@ namespace SkydiverFL.Extensions.CodeSmith
         {
             return table.Owner.Equals(SQL_SERVER_DEFAULT_OWNER, StringComparison.OrdinalIgnoreCase);
         }
-
+        public static string GetDefaultOwner(this TableSchema table)
+        {
+            return table.Database.GetDefaultOwner();
+        }
+        public static string GetDefaultOwner(this DatabaseSchema database)
+        {
+            // TODO: ENHANCE WITH LOGIC TO EXAMPLE THE SOURCE DATABASE TYPE
+            return SQL_SERVER_DEFAULT_OWNER;
+        }
         public static bool HasForeignKeys(this TableSchema table, bool includeSelf = false)
         {
             return table.Columns.Where(x => x.IsForeignKeyMember)
@@ -147,15 +155,13 @@ namespace SkydiverFL.Extensions.CodeSmith
             return tables.Where(x => x.IsRoot()).ToList().ToTableSchemaCollection();
         }
 
-        public static string[] GetOwners(this DatabaseSchema database)
+        public static string[] GetOwners(this DatabaseSchema database, bool includeDefault = false)
         {
             var list = new List<string>();
 
-            foreach (var table in database.Tables.OrderBy(x => x.Owner).Where(x => !x.HasDefaultOnwer()))
+            foreach (var table in database.Tables.OrderBy(x => !x.HasDefaultOnwer()).ThenBy(x => x.Owner).Where(table => !table.HasDefaultOnwer() || includeDefault))
             {
-                if (list.FindIndex(x => x.Equals(table.Owner, StringComparison.OrdinalIgnoreCase)) >= 0) { continue; }
-
-                list.Add(table.Owner);
+                if (!list.Contains(table.Owner)) { list.Add(table.Owner); }
             }
 
             return list.ToArray();
