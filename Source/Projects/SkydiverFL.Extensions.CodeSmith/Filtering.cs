@@ -46,6 +46,13 @@ namespace SkydiverFL.Extensions.CodeSmith
         
     public static class Filtering
     {
+        private static readonly string[] _fixedLengthTypes = { "char", "nchar" };
+
+        public static bool IsFixedLength(this ColumnSchema column)
+        {
+            return _fixedLengthTypes.ToList().Contains(column.NativeType, StringComparer.OrdinalIgnoreCase);
+        }
+
         public static ColumnSchemaCollection Filter(this ColumnSchemaCollection columns, FilterRules rules, FilterDirection direction)
         {
             var matches = (from column in columns

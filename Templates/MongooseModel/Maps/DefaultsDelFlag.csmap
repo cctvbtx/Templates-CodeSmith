@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<codeSmith xmlns="http://www.codesmithtools.com/schema/csmap.xsd">
+  <map caseSensitive="false" returnKeyWhenNotFound="false">
+    <item>
+      <key>bit</key>
+      <value>false</value>
+    </item>
+    <item>
+      <key>datetime</key>
+      <value>null</value>
+    </item>
+    <item>
+      <key>int</key>
+      <value>null</value>
+    </item>
+  </map>
+</codeSmith>

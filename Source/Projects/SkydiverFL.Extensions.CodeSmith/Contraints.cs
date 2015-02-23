@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Web.UI.WebControls;
 using CodeSmith.Core.Extensions;
 using SchemaExplorer;
 
@@ -59,6 +60,20 @@ namespace SkydiverFL.Extensions.CodeSmith
             foreach (var col in cols) { result += col.Name.ToPascalCase(); }
 
             return result;
+        }
+
+        public static bool IsPkIndex(this IndexSchema index)
+        {
+            return index.MemberColumns.All(memberColumn => memberColumn.IsPrimaryKeyMember);
+        }
+
+        public static IndexSchemaCollection GetNonPkIndices(this IndexSchemaCollection indicies)
+        {
+            return indicies.Where(x => !x.IsPkIndex()).ToIndexSchemaCollection();
+        }
+        public static IndexSchemaCollection GetNonPkIndices(this TableSchema table)
+        {
+            return table.Indexes.GetNonPkIndices();
         }
     }
 }

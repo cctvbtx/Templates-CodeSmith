@@ -17,7 +17,7 @@ namespace SkydiverFL.Extensions.CodeSmith
     public static class Autiting
     {
         public static readonly string[] AuditColumnDeleteFlagNames = { "AuditDeletedDate", "_k", "DateDeleted", "IsDeleted" };
-        public static readonly string[] AuditColumnVersionMemberNames = { "AuditMemberUid", "_u" };
+        public static readonly string[] AuditColumnVersionMemberNames = { "AuditMemberId", "AuditMemberUid", "_u" };
         public static readonly string[] AuditColumnVersionDateNames = { "AuditVersionDate", "_d", "AuditDateCreated" };
         public static readonly string[] AuditColumnNames;
 

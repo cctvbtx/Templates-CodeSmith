@@ -11,9 +11,17 @@ namespace SkydiverFL.Extensions.CodeSmith.Helpers
         public static readonly string Alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     }
 
+    public enum SentenceCase
+    {
+        Upper,
+        Lower,
+        Title,
+        Sentence
+    }
+
     public static class Strings
     {
-        public static string ToHypehatedLowercase(this string value)
+        public static string ToSentence(this string value, char delimeter = ' ', SentenceCase sentenceCase = SentenceCase.Sentence)
         {
             if (string.IsNullOrWhiteSpace(value)) { return value; }
 
@@ -21,13 +29,38 @@ namespace SkydiverFL.Extensions.CodeSmith.Helpers
             if (words == null || words.Length < 1) { return string.Empty; }
 
             var result = string.Empty;
-            foreach (var word in words)
+            for (var i = 0; i < words.Length; i++)
             {
-                if (result.Length > 0) { result += "-"; }
-                result += word.ToLower();
+                if (result.Length > 0) { result += delimeter; }
+                switch (sentenceCase)
+                {
+                    case SentenceCase.Sentence:
+                        result += (i == 0 ? words[i].ToTitleCase() : words[i].ToLower());
+                        break;
+                    case SentenceCase.Lower:
+                        result += words[i].ToLower();
+                        break;
+                    case SentenceCase.Title:
+                        result += words[i].ToPascalCase();
+                        break;
+                    case SentenceCase.Upper:
+                        result += words[i].ToUpper();
+                        break;
+                    default:
+                        result += "ERROR";
+                        break;
+                }
             }
 
             return result;
+        }
+        public static string ToHypehatedLowercase(this string value)
+        {
+            return value.ToSentence('-', SentenceCase.Lower);
+        }
+        public static string ToTitle(this string value)
+        {
+            return value.ToSentence(' ', SentenceCase.Title);
         }
 
         public static IEnumerable ToPascalCase(this IEnumerable<string> values)

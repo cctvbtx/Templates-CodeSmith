@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<codeSmith xmlns="http://www.codesmithtools.com/schema/csmap.xsd">
+  <map caseSensitive="false" returnKeyWhenNotFound="true">
+    <item>
+      <key>bit</key>
+      <value>true</value>
+    </item>
+    <item>
+      <key>int</key>
+      <value>moment().utc().toDate()</value>
+    </item>
+    <item>
+      <key>datetime</key>
+      <value>moment().utc().toDate()</value>
+    </item>
+  </map>
+</codeSmith>

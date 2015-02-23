@@ -14,37 +14,6 @@ namespace SkydiverFL.Extensions.CodeSmith.Languages.JSON
     {
         private const string DATE_FORMAT = "yyyyMMddHHmmss";
 
-        //public static string ToJsonNameArray(this ColumnSchemaCollection columns)
-        //{
-
-        //    var text = string.Empty;
-        //    foreach (var column in columns)
-        //    {
-        //        if (text.Length > 0) { text += ","; }
-        //        text += string.Format("\"{0}\"", column.Name);
-        //    }
-        //    return text;
-        //}
-        //public static string ToJsonNameArray(this TableSchemaCollection tables)
-        //{
-        //    var text = string.Empty;
-        //    foreach (var table in tables)
-        //    {
-        //        if (text.Length > 0) { text += ","; }
-        //        text += string.Format("\"{0}\"", table.Name);
-        //    }
-        //    return text;
-        //}
-        //public static string ToJsonNameArray(this MemberColumnSchemaCollection columns)
-        //{
-        //    var text = string.Empty;
-        //    foreach (var column in columns)
-        //    {
-        //        if (text.Length > 0) { text += ","; }
-        //        text += string.Format("\"{0}\"", column.Name);
-        //    }
-        //    return text;
-        //}
         private static string[] ToNameArray(this ColumnSchemaCollection columns)
         {
             return columns.Select(column => column.Name).ToArray();
@@ -56,6 +25,10 @@ namespace SkydiverFL.Extensions.CodeSmith.Languages.JSON
         private static string[] ToNameArray(this MemberColumnSchemaCollection columns)
         {
             return columns.Select(column => column.Name).ToArray();
+        }
+        private static string[] ToNameArray(this IndexSchemaCollection indicies)
+        {
+            return indicies.Select(index => index.Name).ToArray();
         }
 
         public static object ToSchemaObject(this ColumnSchema column)
@@ -103,6 +76,7 @@ namespace SkydiverFL.Extensions.CodeSmith.Languages.JSON
                 fullName = index.FullName,
                 isClustered = index.IsClustered,
                 isPk = index.IsPrimaryKey,
+                isPkIndex = index.IsPkIndex(),
                 isUnique = index.IsUnique,
                 sortName = index.SortName,
                 table = index.Table.Name,
@@ -166,6 +140,7 @@ namespace SkydiverFL.Extensions.CodeSmith.Languages.JSON
                 nonFkColumns = table.NonForeignKeyColumns.ToNameArray(),
                 nonKeyColumns = table.NonKeyColumns.ToNameArray(),
                 nonPkColumns = table.NonPrimaryKeyColumns.ToNameArray(),
+                nonPkIndices = table.Indexes.GetNonPkIndices().ToNameArray()
             };
 
         }

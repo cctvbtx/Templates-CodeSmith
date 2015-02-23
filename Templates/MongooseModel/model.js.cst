@@ -1,0 +1,616 @@
+﻿<%-- 
+Name:   model.js.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Desc:
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="Text" CompilerVersion="v4.5" Description="" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%-- Local Properties --%>
+<%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
+
+<%@ Map Name="DefaultsDelFlag" Src="Maps\DefaultsDelFlag.csmap" %>
+<%@ Map Name="SchemaFieldNames" Src="Maps\SchemaFieldNames.csmap" %>
+<%@ Map Name="SqlToMongoose" Src="Maps\SqlToMongoose.csmap" %>
+<%@ Map Name="SqlToMongooseKey" Src="Maps\SqlToMongooseKey.csmap" %>
+<%@ Map Name="ValuesDelFlag" Src="Maps\ValuesDelFlag.csmap" %>
+<%@ Map Name="ValuesVersionDate" Src="Maps\ValuesVersionDate.csmap" %>
+
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+
+<!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+<%
+var pkCount = 0;
+
+
+
+
+
+
+
+
+
+// ==============================================
+// SCHEMA DEFINITION & INSTANCE VARIABLES - BEGIN
+// ==============================================
+%>
+var moment = require('moment'),
+    mongoose = require('mongoose'),
+    strings = require('dzstrings');
+    uids = require('dzuuids');
+
+var <%= CurrentTable.Name.ToCamelCase() %>Schema = new mongoose.Schema({
+<% 
+foreach (var column in CurrentTable.Columns)
+{ 
+    if (column.IsPrimaryKeyMember){ pkCount++; }
+    if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
+
+    var eol = (column == CurrentTable.Columns.Last()) ? string.Empty : ",";
+    
+    var line = SchemaFieldNames[column.Name.ToCamelCase()] + ": { type: " + ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType]);
+    switch ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType])
+    {
+        case "String":
+            line += ", trim: true";
+            line += (column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? ", uppercase: true" : string.Empty;
+            line += (column.IsPrimaryKeyMember && !column.IsFixedLength()) ? ", default: uids.newUid" : string.Empty;
+            break;
+        case "Date":
+            line += column.IsDeleteFlag() ? ", default: null" : string.Empty;
+            break;
+        default:
+            break;
+    }
+    line += ", required: " + column.AllowDBNull.ToString().ToLower();
+    line += column.IsForeignKeyMember ? ", ref: '" + column.GetPrimaryTable().Name.ToPascalCase() + "'" : string.Empty;
+    line += " }" + eol;
+    
+%>
+    <%= line %>
+<% 
+}
+%>
+});
+<%
+// ==============================================
+// SCHEMA DEFINITION & INSTANCE VARIABLES - END
+// ==============================================
+
+
+
+
+
+
+
+
+
+
+// ================
+// INDICIES - BEGIN
+// ================
+if (CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).Count() < 1)
+{
+%>
+
+// NOTE: Table does not have any indices!
+<%
+}
+
+foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).OrderBy(x => x.IsUnique).OrderBy(x => x.CreateUniqueName()))
+{
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.index({
+<%
+    foreach (var column in index.MemberColumns)
+    {
+        var eol = (column == index.MemberColumns.Last()) ? string.Empty : ",";
+%>
+    <%= SchemaFieldNames[column.Name.ToCamelCase()] %>: 1<%= eol %>
+<%
+    }
+%>
+}, { unique: <%= index.IsUnique.ToString().ToLower() %> });
+<%
+}
+// ================
+// INDICIES - END
+// ================
+
+
+
+
+
+
+
+
+
+
+// ==================
+// VALIDATION - BEGIN
+// ==================
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.validateItem = function(item, callback) {
+    if (typeof item == 'undefined'){ return callback(new Error('No item to validate')); }
+<% 
+pkCount = 0;
+foreach (var column in CurrentTable.Columns)
+{ 
+    if (column.IsPrimaryKeyMember){ pkCount++; }
+    if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
+
+    var text = "if (typeof item.{0} != 'undefined'){ if ({1}(item.{2})){ return callback(new Error('{3} is not a valid {4}')); } else { {5} } }";
+    text = text.Replace("{0}", SchemaFieldNames[column.Name.ToCamelCase()]);
+    text = text.Replace("{2}", SchemaFieldNames[column.Name.ToCamelCase()]);
+    if (SchemaFieldNames[column.Name.ToCamelCase()].Equals(column.Name.ToCamelCase(), StringComparison.Ordinal)){ text = text.Replace("{3}", SchemaFieldNames[column.Name.ToCamelCase()]); }
+    else { text = text.Replace("{3}", SchemaFieldNames[column.Name.ToCamelCase()] + " (" + column.Name.ToCamelCase() + ")"); }
+
+    text = text.Replace("{4}", ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType]) + (column.AllowDBNull ? " or null value" : string.Empty));
+    
+    switch ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType])
+    {
+        case "String":
+            if ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) && column.IsFixedLength())
+            {
+                text = text.Replace("{1}", "!strings.isAlphanumeric" + (column.AllowDBNull ? "OrNull" : string.Empty));
+            }
+            else
+            {
+                text = text.Replace("{1}", "!strings.isValidString" + (column.AllowDBNull ? "OrNull" : string.Empty));
+            }
+            text = text.Replace("{5}", "item." + SchemaFieldNames[column.Name.ToCamelCase()] + " = strings.trimToNull(item." + SchemaFieldNames[column.Name.ToCamelCase()] + ");");
+            break;
+        case "Date":
+        case "Number":
+        case "Boolean":
+            text = text.Replace("{1}", "!strings." + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
+            text = text.Replace("{5}", string.Empty);
+            break;
+        default:
+            // validator = "TYPE NOT ACCOUNTED FOR";
+            break;
+    }
+    // validator += column.AllowDBNull ? "OrNull" : string.Empty;
+%>
+    <%= text %>
+<% 
+}
+%>
+    return callback(null, item);
+};
+<%
+// ==================
+// VALIDATION - END
+// ==================
+
+
+
+
+
+
+
+
+
+
+// ==============
+// TO DTO - BEGIN
+// ==============
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto = function(item, callback) {
+    if (!item){ return callback(new Error('No item to convert')); }
+    var dto = {};
+<%
+pkCount = 0;
+foreach (var column in CurrentTable.Columns)
+{ 
+    if (column.IsPrimaryKeyMember){ pkCount++; }
+    if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
+%>
+    if (typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> != 'undefined'){ dto.<%= column.Name.ToCamelCase() %> = item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %>; }
+<%
+}
+%>    
+    return dto;
+};
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtoFull = function(item, callback) {
+    if (!item){ return callback(new Error('No item to convert')); }
+    var dto = {
+<%
+pkCount = 0;
+foreach (var column in CurrentTable.Columns)
+{ 
+    if (column.IsPrimaryKeyMember){ pkCount++; }
+    if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
+    
+    var eol = (column == CurrentTable.Columns.Last()) ? string.Empty : ",";
+%>
+        <%= column.Name.ToCamelCase() %>: ((typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> != 'undefined') ? item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> : null)<%= eol %>
+<%
+}
+%>    
+    };
+    return dto;
+};
+<%
+// ==============
+// TO DTO - END
+// ==============
+
+
+
+
+
+
+
+
+
+
+// ===============
+// TO ITEM - BEGIN
+// ===============
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem = function(dto, callback) {
+    if (!dto){ return callback(new Error('No DTO to convert')); }
+    var item = {};
+<%
+pkCount = 0;
+foreach (var column in CurrentTable.Columns)
+{ 
+    if (column.IsPrimaryKeyMember){ pkCount++; }
+    if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
+%>
+    if (typeof dto.<%= column.Name.ToCamelCase() %> != 'undefined'){ item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> = dto.<%= column.Name.ToCamelCase() %>; }
+<%
+}
+%>    
+    return item;
+};
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItemFull = function(dto, callback) {
+    if (!dto){ return callback(new Error('No DTO to convert')); }
+    var item = {
+<%
+pkCount = 0;
+foreach (var column in CurrentTable.Columns)
+{ 
+    if (column.IsPrimaryKeyMember){ pkCount++; }
+    if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
+    
+    var eol = (column == CurrentTable.Columns.Last()) ? string.Empty : ",";
+%>
+        <%= SchemaFieldNames[column.Name.ToCamelCase()] %>: ((typeof dto.<%= column.Name.ToCamelCase() %> != 'undefined') ? dto.<%= column.Name.ToCamelCase() %> : null)<%= eol %>
+<%
+}
+%>    
+    };
+    return item;
+};
+<%
+// ===============
+// TO ITEM - END
+// ===============
+
+
+
+
+
+
+
+
+
+// =================
+// GET BY ID - BEGIN
+// =================
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.getById = function(id, callback) {
+    var query = { _id: id<% if (CurrentTable.HasDeleteFlag()){ %>, <%= SchemaFieldNames[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %>: <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %><% } %> };
+    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.validateItem(query, function(err){
+        if (err){ return callback(err); }
+        return this.findOne(query, function(err, item){
+            if (err){ return callback(err); }
+            return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(item);
+        });
+    });
+};
+<%
+// =================
+// GET BY ID - END
+// =================
+
+
+
+
+
+
+
+
+
+
+// ====================
+// GET BY INDEX - BEGIN
+// ====================
+if (CurrentTable.Indexes.Where(x => !x.IsPkIndex()).Count() < 1)
+{
+%>
+
+// NO INDICES ON TABLE!
+<%
+}
+
+foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPkIndex()).OrderBy(x => x.IsUnique).OrderBy(x => x.CreateUniqueName()))
+{
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = function(<%= index.ToParamsArray() %>, callback) {
+    var query = {
+<%
+    foreach (var column in index.MemberColumns)
+    {
+        var eol = (column == index.MemberColumns.Last()) ? string.Empty : ",";
+%>
+        <%= SchemaFieldNames[column.Name.ToCamelCase()] %>: <%= (column.IsDeleteFlag() ? DefaultsDelFlag[column.NativeType] : column.Name.ToCamelCase()) %><%= eol %>
+<%
+    }
+%>
+    };
+    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.validateItem(query, function(err){
+        if (err){ return callback(err); }
+        return this.find<%= (index.IsUnique ? "One" : "") %>(query, function(err, <%= (index.IsUnique ? "item" : "items") %>){
+            if (err){ return callback(err); }
+            return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.<%= (index.IsUnique ? "toDto" : "toDtos") %>(<%= (index.IsUnique ? "item" : "items") %>);
+        });
+    });
+<%
+%>
+};
+<%
+}
+// ====================
+// GET BY INDEX - END
+// ====================
+
+
+
+
+
+
+
+
+
+
+// ==============
+// CREATE - BEGIN
+// ==============
+
+
+var paramArrayForCreate = CurrentTable.Columns.Where(column => !column.IsVersionDateColumn() && !column.IsDeleteFlag())
+                                              .Where(column => !column.IsPrimaryKeyMember || column.IsFixedLength()).ToList().ToColumnSchemaCollection().ToParamsArray();
+
+var columnsForCreate = CurrentTable.Columns.Where(column => !column.IsPrimaryKeyMember || column.IsFixedLength()).ToList().ToColumnSchemaCollection();
+
+pkCount = 0;
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.create = function(<%= paramArrayForCreate %>, callback) {
+    var data = {
+<%
+foreach (var column in columnsForCreate)
+{
+    if (column.IsPrimaryKeyMember){ pkCount++; }
+    if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
+    
+    var eol = (column == columnsForCreate.Last()) ? string.Empty : ",";
+
+    var line = SchemaFieldNames[column.Name.ToCamelCase()] + ": ";
+    line += column.IsVersionDateColumn()
+        ? "moment().utc().toDate()"
+        : column.IsDeleteFlag()
+            ? DefaultsDelFlag[column.NativeType]
+            : column.Name.ToCamelCase();
+    line += eol;
+%>
+        <%= line %>
+<%
+}
+%>
+    };
+    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.validateItem(query, function(err){
+        if (err){ return callback(err); }
+        var newItem = new this(data);
+        newItem.save(function(err, item){
+            if (err){ return callback(err); }
+            return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(item);
+        });
+    });
+};
+<%
+// ==============
+// CREATE - END
+// ==============
+
+
+
+
+
+
+
+
+
+
+// ============
+// INIT - BEGIN
+// ============
+pkCount = 0;
+var indent = 0;
+var PAD_WIDTH = 4;
+var pad = string.Empty;
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.init = function(<%= paramArrayForCreate %>, suppressError, callback) {
+    var dupErr = suppressError ? null : (new Error('Duplicate <%= CurrentTable.Name.ToTitle() %> detected'));
+<%
+foreach (var index in CurrentTable.Indexes.Where(x => x.IsUnique && !x.IsPkIndex()))
+{
+    indent++;
+    pad = string.Empty.PadLeft(PAD_WIDTH * indent, ' '); 
+%>
+<%= pad %><%= CurrentTable.Name.ToCamelCase() %>Schema.statics.getOneBy<%= index.CreateUniqueName() %>(<%= index.ToParamsArray() %>, function(err, existing){
+<%= pad %>    if (err){ return callback(err); }
+<%= pad %>    if (existing){ return callback(dupErr, existing); }
+<%
+}
+%>
+<%= pad %>    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.create(<%= paramArrayForCreate %>, callback);
+<%
+for (int i = indent; i > 0; i--)
+{
+    pad = string.Empty.PadLeft(PAD_WIDTH * i, ' '); 
+%>
+<%= pad %>});
+<%
+}
+%>
+};
+<%
+// ============
+// INIT - END
+// ============
+
+
+
+
+
+
+
+
+
+
+// ==============
+// MODIFY - BEGIN
+// ==============
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.modify = function(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    if (!updateDto){ return callback(new Error('Nothing to update')); }
+<%
+    if (CurrentTable.HasVersionDateColumn())
+    {
+%>
+    updateDto.<%= CurrentTable.GetVersionDateColumn().Name.ToCamelCase() %> = <%= ValuesVersionDate[CurrentTable.GetVersionDateColumn().NativeType] %>;
+<%
+    }
+    if (CurrentTable.HasVersionUserColumn())
+    {
+%>
+    updateDto.<%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> = <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %>;
+<%
+    }
+%>
+    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(queryDto, function(err, query){
+        if (err){ return callback(new Error('Problem with query: ' + err.message)); }
+        <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(updateDto, function(err, query){
+            if (err){ return callback(new Error('Problem with update: ' + err.message)); }
+            return this.findAndUpdate(query, update, function(err, items){
+                if (err){ return callback(err); }
+                return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDtos(items);
+            });
+        });
+    });
+};
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.modifyOne = function(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    if (!updateDto){ return callback(new Error('Nothing to update')); }
+<%
+    if (CurrentTable.HasVersionDateColumn())
+    {
+%>
+    updateDto.<%= CurrentTable.GetVersionDateColumn().Name.ToCamelCase() %> = <%= ValuesVersionDate[CurrentTable.GetVersionDateColumn().NativeType] %>;
+<%
+    }
+    if (CurrentTable.HasVersionUserColumn())
+    {
+%>
+    updateDto.<%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> = <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %>;
+<%
+    }
+%>
+    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(queryDto, function(err, query){
+        if (err){ return callback(new Error('Problem with query: ' + err.message)); }
+        <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toItem(updateDto, function(err, query){
+            if (err){ return callback(new Error('Problem with update: ' + err.message)); }
+            return this.findOneAndUpdate(query, update, function(err, item){
+                if (err){ return callback(err); }
+                return <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.toDto(item);
+            });
+        });
+    });
+};
+<%
+// ==============
+// MODIFY - END
+// ==============
+
+
+
+
+
+
+
+
+
+
+// ==============
+// DELETE - BEGIN
+// ==============
+if (!CurrentTable.HasDeleteFlag())
+{
+%>
+
+// TABLE DOES NOT HAVE A DELETE FLAG COLUMN - DELETE METHOD NOT GENERATED
+<%
+}
+else
+{
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.delete = function(queryDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    var updateDto = { <%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %>: <%= ValuesDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> };
+    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.modify(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
+};
+
+<%= CurrentTable.Name.ToCamelCase() %>Schema.statics.deleteOne = function(queryDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    var updateDto = { <%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %>: <%= ValuesDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> };
+    <%= CurrentTable.Name.ToCamelCase() %>Schema.statics.modifyOne(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
+};
+<%
+}
+// ==============
+// DELETE - END
+// ==============
+%>
+
+var model = mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>', <%= CurrentTable.Name.ToCamelCase() %>Schema);
+
+module.exports = model;
