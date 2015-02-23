@@ -29,6 +29,7 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 ### v0.1.1
 - Added data index template (`index.data.js.cst`)
 - Added master template
+
 ### v0.1.2
 - Added route template (`route.js.cst`)
 - Added route index template (`index.route.js.cst`)
