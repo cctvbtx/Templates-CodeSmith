@@ -3,7 +3,7 @@
 ## Summary
 
 ### Background
-Provides data logic methods for simplifying data access.  Allows for dynamically replacing lengthy variable names with shortened versions within the MongoDB database.  Will eventually be used in conjunction with a cleaner web service template.
+Provides data logic methods and API access routes to simplify creating data access for NodeJS applications.  Design is done through SQL Server Diagram tool.  Generates Mongoose schemas for MongoDB and direct routes to each data call from an ExpressJS API route.  Allows for dynamically replacing lengthy variable names with shortened versions within the MongoDB database.
 
 ### Status
 In development.  Initial creation uploaded to repository.  Testing beginning.
@@ -17,9 +17,10 @@ SQL Server and CodeSmith Generator v7.0 is needed for generation.  Earlier versi
 Template designed to run in CodeSmith Generator, a Windows-only product.  Once generated the codebase should run in any environment that supports NodeJS.
 
 ### Production
-Generated code based runs in any environment supporting NodeJS.
+Generated code based runs in any environment supporting NodeJS.  ExpressJS is needed if the API routes are used.
 
 ## Deviations
+None.
 
 ## Future Goals
 Need to improve with feedback from experienced Mongoose / MongoDB developers.  Should also add methods for paging and other advanced features.
@@ -37,4 +38,4 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 
 ---
 
-Last updated: 2/23/2015 6:37:04 PM 
+Last updated: 2/23/2015 6:57:40 PM   
