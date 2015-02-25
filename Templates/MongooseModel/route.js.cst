@@ -27,28 +27,33 @@ Desc:
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
-
+/*jslint node: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+
+'use strict';
+
 var express = require('express'),
-    <%= CurrentTable.Name.ToPlural().ToCamelCase() %> = require('../../<%= CurrentTable.HasDefaultOnwer() ? "models/" : "../models/" + CurrentTable.Owner.ToHypehatedLowercase() + "/" %><%= CurrentTable.Name.ToHypehatedLowercase() %>.model');
+    <%= CurrentTable.Name.ToPlural().ToPascalCase() %> = require('../../<%= CurrentTable.HasDefaultOnwer() ? "models/" : "../models/" + CurrentTable.Owner.ToHypehatedLowercase() + "/" %><%= CurrentTable.Name.ToHypehatedLowercase() %>.model');
     
 var <%= CurrentTable.Name.ToCamelCase() %>Router = express.Router();
 <%
 var pkCount = 0;
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Router.get('/', function(req, res) {
-    <%= CurrentTable.Name.ToPlural().ToCamelCase() %>.getAll(function(err, items){
-        if (err){ throw err; }
-        if (!items || items.length < 1){ return res.status(404).send({}); }
+<%= CurrentTable.Name.ToCamelCase() %>Router.get('/', function (req, res) {
+    var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.getAll(function (err, items) {
+        if (err) { throw err; }
+        if (!items || items.length < 1) { return res.status(404).send({}); }
         return res.send({ items: items });
     });
 });
 
-<%= CurrentTable.Name.ToCamelCase() %>Router.get('/:id', function(req, res) {
-    <%= CurrentTable.Name.ToPlural().ToCamelCase() %>.getById(req.params.id, function(err, item){
-        if (err){ throw err; }
-        if (!item){ return res.status(404).send({}); }
+<%= CurrentTable.Name.ToCamelCase() %>Router.get('/:id', function (req, res) {
+    var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.getById(req.params.id, function (err, item) {
+        if (err) { throw err; }
+        if (!item) { return res.status(404).send({}); }
         return res.send({ item: item });
     });
 });
@@ -68,18 +73,20 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPkIndex()).OrderBy(x =
 {
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Router.post('/get-<%= (index.IsUnique ? "one-" : "") %>by-<%= index.CreateUniqueName().ToHypehatedLowercase() %>', function(req, res) {
+<%= CurrentTable.Name.ToCamelCase() %>Router.post('/get-<%= (index.IsUnique ? "one-" : "") %>by-<%= index.CreateUniqueName().ToHypehatedLowercase() %>', function (req, res) {
 <%
     foreach(var column in index.MemberColumns)
     {
+        var prefix = (column == index.MemberColumns.First()) ? "var " : "    ";
 %>
-    var <%= column.Name.ToCamelCase() %> = req.body.<%= column.Name.ToCamelCase() %>;
+    <%= prefix %><%= column.Name.ToCamelCase() %> = req.body.<%= column.Name.ToCamelCase() %>,
 <%
     }
 %>
-    <%= CurrentTable.Name.ToPlural().ToCamelCase() %>.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>(<%= index.ToParamsArray() %>, function(err, <%= index.IsUnique ? "item" : "items" %>) {
-        if (err){ throw err; }
-        if (!item<%= index.IsUnique ? "" : "s || items.length < 1" %>){ return res.status(404).send({}); }
+        <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>(<%= index.ToParamsArray() %>, function (err, <%= index.IsUnique ? "item" : "items" %>) {
+        if (err) { throw err; }
+        if (!item<%= index.IsUnique ? "" : "s || items.length < 1" %>) { return res.status(404).send({}); }
         return res.send({ <%= index.IsUnique ? "item: item" : "items: items" %> });
     });
 });
@@ -110,23 +117,25 @@ var columnsForCreate = CurrentTable.Columns.Where(column => !column.IsPrimaryKey
 pkCount = 0;
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Router.post('/', function(req, res) {
+<%= CurrentTable.Name.ToCamelCase() %>Router.post('/', function (req, res) {
 <%
 foreach (var column in columnsForCreate)
 {
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
+    
+    var prefix = (column == columnsForCreate.First() ? "var " : "    ");
 %>
-    var <%= column.Name.ToCamelCase() %> = req.body.<%= column.Name.ToCamelCase() %>;
+    <%= prefix %><%= column.Name.ToCamelCase() %> = req.body.<%= column.Name.ToCamelCase() %>,
 <%
 }
 %>
-    var suppressError = req.body.suppressError;
-    var model = new <%= CurrentTable.Name.ToPlural().ToCamelCase() %>();
-    model.createOrGet(<%= paramArrayForCreate %>, suppressError, function(err, item) {
-        if (err && !item){ throw err; }
-        if (err && item){ return res.send({ msg: err.message, item: item }) }
-        return res.send({ item: item })
+        suppressError = (req.body.suppressError || req.body.e ? true : false),
+        <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.init(<%= paramArrayForCreate %>, suppressError, function (err, item) {
+        if (err && !item) { throw err; }
+        if (err && item) { return res.send({ msg: err.message, item: item }); }
+        return res.send({ item: item });
     });
 });
 <%
@@ -148,40 +157,42 @@ foreach (var column in columnsForCreate)
 // ==============
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Router.put('/', function(req, res) {
-    if (!req.body.query){ return res.status(400).send({ msg: 'Query not supplied' }); }
-    if (!req.body.update){ return res.status(400).send({ msg: 'Update not supplied' }); }
+<%= CurrentTable.Name.ToCamelCase() %>Router.put('/', function (req, res) {
+    if (!req.body.query) { return res.status(400).send({ msg: 'Query not supplied' }); }
+    if (!req.body.update) { return res.status(400).send({ msg: 'Update not supplied' }); }
 <%
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && req.body.u){ return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+    if (!req.body.auditUserId && req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
     var auditUserId = (req.body.auditUserId ? req.body.auditUserId : req.body.u);
 <%
 }
-%>    
-    <%= CurrentTable.Name.ToPlural().ToCamelCase() %>.modify(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function(err, items) {
-        if (err && !items){ throw err; }
-        if (err && items){ return res.send({ msg: err.message, items: items }) }
-        return res.send({ items: items })
+%>  
+    var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.modify(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, items) {
+        if (err && !items) { throw err; }
+        if (err && items) { return res.send({ msg: err.message, items: items }); }
+        return res.send({ items: items });
     });
 });
 
-<%= CurrentTable.Name.ToCamelCase() %>Router.put('/:id', function(req, res) {
-    var query = { id: req.params.id };
+<%= CurrentTable.Name.ToCamelCase() %>Router.put('/:id', function (req, res) {
+    var query = { id: req.params.id },
 <%
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && req.body.u){ return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
-    var auditUserId = (req.body.auditUserId ? req.body.auditUserId : req.body.u);
+    if (!req.body.auditUserId && req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+        auditUserId = (req.body.auditUserId ? req.body.auditUserId : req.body.u),
 <%
 }
-%>    
-    <%= CurrentTable.Name.ToPlural().ToCamelCase() %>.modifyOne(query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function(err, item) {
-        if (err && !item){ throw err; }
-        if (err && item){ return res.send({ msg: err.message, item: item }) }
-        return res.send({ item: item })
+%>
+        <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.modifyOne(query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, item) {
+        if (err && !item) { throw err; }
+        if (err && item) { return res.send({ msg: err.message, item: item }); }
+        return res.send({ item: item });
     });
 });
 <%
@@ -212,39 +223,41 @@ else
 {
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Router.delete('/', function(req, res) {
-    if (!req.body.query){ return res.status(400).send({ msg: 'Query not supplied' }); }
-    if (!req.body.update){ return res.status(400).send({ msg: 'Update not supplied' }); }
+<%= CurrentTable.Name.ToCamelCase() %>Router.delete('/', function (req, res) {
+    if (!req.body.query) { return res.status(400).send({ msg: 'Query not supplied' }); }
+    if (!req.body.update) { return res.status(400).send({ msg: 'Update not supplied' }); }
 <%
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && req.body.u){ return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+    if (!req.body.auditUserId && req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
     var auditUserId = (req.body.auditUserId ? req.body.auditUserId : req.body.u);
 <%
 }
 %>    
-    <%= CurrentTable.Name.ToPlural().ToCamelCase() %>.delete(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function(err, items) {
-        if (err && !items){ throw err; }
-        if (err && items){ return res.send({ msg: err.message, items: items }) }
+    var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.delete(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, items) {
+        if (err && !items) { throw err; }
+        if (err && items) { return res.send({ msg: err.message, items: items }) }
         return res.send({ items: items })
     });
 });
 
-<%= CurrentTable.Name.ToCamelCase() %>Router.delete('/:id', function(req, res) {
+<%= CurrentTable.Name.ToCamelCase() %>Router.delete('/:id', function (req, res) {
     var query = { id: req.params.id };
 <%
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && req.body.u){ return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+    if (!req.body.auditUserId && req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
     var auditUserId = (req.body.auditUserId ? req.body.auditUserId : req.body.u);
 <%
 }
 %>    
-    <%= CurrentTable.Name.ToPlural().ToCamelCase() %>.deleteOne(query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function(err, items) {
-        if (err && !item){ throw err; }
-        if (err && item){ return res.send({ msg: err.message, item: item }) }
+    var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.deleteOne(query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, items) {
+        if (err && !item) { throw err; }
+        if (err && item) { return res.send({ msg: err.message, item: item }) }
         return res.send({ item: item })
     });
 });

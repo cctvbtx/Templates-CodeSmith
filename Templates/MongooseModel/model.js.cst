@@ -34,8 +34,11 @@ Desc:
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
-
+/*jslint node: true, nomen: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+
+'use strict';
+
 <%
 var pkCount = 0;
 
@@ -189,8 +192,8 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).OrderBy(x 
 // ==================
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.validateItem = function validateItem(item, callback) {
-    if (typeof item == 'undefined'){ return callback(new Error('No item to validate')); }
+var validateItem = function (item, callback) {
+    if (typeof item === undefined) { return callback(new Error('No item to validate')); }
 <% 
 pkCount = 0;
 foreach (var column in CurrentTable.Columns)
@@ -198,7 +201,7 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 
-    var text = "if (typeof item.{0} != 'undefined'){ if ({1}(item.{2})){ return callback(new Error('{3} is not a valid {4}')); } else { {5} } }";
+    var text = "if (typeof item.{0} !== undefined) { if ({1}(item.{2})) { return callback(new Error('{3} is not a valid {4}')); } else { {5} } }";
     text = text.Replace("{0}", SchemaFieldNames[column.Name.ToCamelCase()]);
     text = text.Replace("{2}", SchemaFieldNames[column.Name.ToCamelCase()]);
     if (SchemaFieldNames[column.Name.ToCamelCase()].Equals(column.Name.ToCamelCase(), StringComparison.Ordinal)){ text = text.Replace("{3}", SchemaFieldNames[column.Name.ToCamelCase()]); }
@@ -236,7 +239,8 @@ foreach (var column in CurrentTable.Columns)
 }
 %>
     return callback();
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.validateItem = validateItem;
 <%
 // ==================
 // VALIDATION - END
@@ -256,8 +260,8 @@ foreach (var column in CurrentTable.Columns)
 // ==============
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDto = function toDto(item) {
-    if (!item){ return null; }
+var toDto = function (item) {
+    if (!item) { return null; }
     var dto = {};
 <%
 pkCount = 0;
@@ -266,25 +270,26 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 %>
-    if (typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> != 'undefined'){ dto.<%= column.Name.ToCamelCase() %> = item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %>; }
+    if (typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> !== undefined) { dto.<%= column.Name.ToCamelCase() %> = item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %>; }
 <%
 }
 %>    
     return dto;
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDto = toDto;
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDtos = function toDtos(items) {
-    if (!items || !items.length < 1){ return null; }
-    var dtos = [];
-    for(var i = 0; i < items.length; i++)
-    {
-        dtos.push(this.toDto(items[i]));
+var toDtos = function (items) {
+    if (!items || items.length < 1) { return null; }
+    var i, dtos = [];
+    for (i = 0; i < items.length; i += 1) {
+        dtos.push(toDto(items[i]));
     }
     return dtos;
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDto = toDto;
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDtoFull = function toDtoFull(item) {
-    if (!item){ return null; }
+var toDtoFull = function (item) {
+    if (!item) { return null; }
     var dto = {
 <%
 pkCount = 0;
@@ -295,23 +300,24 @@ foreach (var column in CurrentTable.Columns)
     
     var eol = (column == CurrentTable.Columns.Last()) ? string.Empty : ",";
 %>
-        <%= column.Name.ToCamelCase() %>: ((typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> != 'undefined') ? item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> : null)<%= eol %>
+        <%= column.Name.ToCamelCase() %>: ((typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> !== undefined) ? item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> : null)<%= eol %>
 <%
-}
+};
 %>    
     };
     return dto;
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDtoFull = toDtoFull;
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDtosFull = function toDtosFull(items) {
-    if (!items || !items.length < 1){ return null; }
-    var dtos = [];
-    for(var i = 0; i < items.length; i++)
-    {
-        dtos.push(this.toDtoFull(items[i]));
+var toDtosFull = function (items) {
+    if (!items || items.length < 1) { return null; }
+    var i, dtos = [];
+    for (i = 0; i < items.length; i += 1) {
+        dtos.push(toDtoFull(items[i]));
     }
     return dtos;
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDtosFull = toDtosFull;
 <%
 // ==============
 // TO DTO - END
@@ -331,8 +337,8 @@ foreach (var column in CurrentTable.Columns)
 // ===============
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItem = function toItem(dto) {
-    if (!dto){ return null; }
+var toItem = function (dto) {
+    if (!dto) { return null; }
     var item = {};
 <%
 pkCount = 0;
@@ -341,25 +347,26 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 %>
-    if (typeof dto.<%= column.Name.ToCamelCase() %> != 'undefined'){ item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> = dto.<%= column.Name.ToCamelCase() %>; }
+    if (typeof dto.<%= column.Name.ToCamelCase() %> !== undefined) { item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> = dto.<%= column.Name.ToCamelCase() %>; }
 <%
 }
 %>    
     return item;
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItem = toItem;
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItems = function toItems(dtos) {
-    if (!dtos || !dtos.length < 1){ return null; }
-    var items = [];
-    for(var i = 0; i < dtos.length; i++)
-    {
-        items.push(this.toItem(dtos[i]));
+var toItems = function toItems(dtos) {
+    if (!dtos || dtos.length < 1) { return null; }
+    var i, items = [];
+    for (i = 0; i < dtos.length; i += 1) {
+        items.push(toItem(dtos[i]));
     }
     return items;
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItems = toItems;
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItemFull = function toItemFull(dto) {
-    if (!dto){ return null; }
+var toItemFull = function toItemFull(dto) {
+    if (!dto) { return null; }
     var item = {
 <%
 pkCount = 0;
@@ -370,23 +377,24 @@ foreach (var column in CurrentTable.Columns)
     
     var eol = (column == CurrentTable.Columns.Last()) ? string.Empty : ",";
 %>
-        <%= SchemaFieldNames[column.Name.ToCamelCase()] %>: ((typeof dto.<%= column.Name.ToCamelCase() %> != 'undefined') ? dto.<%= column.Name.ToCamelCase() %> : null)<%= eol %>
+        <%= SchemaFieldNames[column.Name.ToCamelCase()] %>: ((typeof dto.<%= column.Name.ToCamelCase() %> !== undefined) ? dto.<%= column.Name.ToCamelCase() %> : null)<%= eol %>
 <%
 }
 %>    
     };
     return item;
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItemFull = toItemFull;
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItemsFull = function toItemsFull(dtos) {
-    if (!dtos || !dtos.length < 1){ return null; }
-    var items = [];
-    for(var i = 0; i < dtos.length; i++)
-    {
-        items.push(this.toItemFull(dtos[i]));
+var toItemsFull = function (dtos) {
+    if (!dtos || dtos.length < 1) { return null; }
+    var i, items = [];
+    for (i = 0; i < dtos.length; i += 1) {
+        items.push(toItemFull(dtos[i]));
     }
     return items;
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItemsFull = toItemsFull;
 <%
 // ===============
 // TO ITEM - END
@@ -405,24 +413,26 @@ foreach (var column in CurrentTable.Columns)
 // =================
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getAll = function getAll(callback) {
-    var query = { <% if(CurrentTable.HasDeleteFlag()){ %><%= SchemaFieldNames[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %>: <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %><% } %> };
-    return mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').find(query, function(err, items){
-        if (err){ return callback(err); }
-        return callback(null, this.toDtos(items));
+var getAll = function (callback) {
+    var query = {<% if(CurrentTable.HasDeleteFlag()){ %> <%= SchemaFieldNames[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %>: <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> <% } %>};
+    mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').find(query, function (err, items) {
+        if (err) { return callback(err); }
+        return callback(null, toDtos(items));
     });
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getAll = getAll;
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getById = function getById(id, callback) {
+var getById = function (id, callback) {
     var query = { _id: id<% if (CurrentTable.HasDeleteFlag()){ %>, <%= SchemaFieldNames[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %>: <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %><% } %> };
-    this.validateItem(query, function(err){
-        if (err){ return callback(err); }
-        mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').findOne(query, function(err, item){
-            if (err){ return callback(err); }
-            return callback(null, this.toDto(item));
+    validateItem(query, function (err) {
+        if (err) { return callback(err); }
+        mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').findOne(query, function (err, item) {
+            if (err) { return callback(err); }
+            return callback(null, toDto(item));
         });
     });
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getById = getById;
 <%
 // =================
 // GET BY ID - END
@@ -452,7 +462,7 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPkIndex()).OrderBy(x =
 {
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = function get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>(<%= index.ToParamsArray() %>, callback) {
+var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = function (<%= index.ToParamsArray() %>, callback) {
     var query = {
 <%
     foreach (var column in index.MemberColumns)
@@ -464,16 +474,17 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPkIndex()).OrderBy(x =
     }
 %>
     };
-    this.validateItem(query, function(err){
-        if (err){ return callback(err); }
-        mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').find<%= (index.IsUnique ? "One" : "") %>(query, function(err, <%= (index.IsUnique ? "item" : "items") %>){
-            if (err){ return callback(err); }
-            return callback(null, mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').<%= (index.IsUnique ? "toDto" : "toDtos") %>(<%= (index.IsUnique ? "item" : "items") %>));
+    validateItem(query, function (err) {
+        if (err) { return callback(err); }
+        mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').find<%= (index.IsUnique ? "One" : "") %>(query, function (err, <%= (index.IsUnique ? "item" : "items") %>) {
+            if (err) { return callback(err); }
+            return callback(null, <%= (index.IsUnique ? "toDto" : "toDtos") %>(<%= (index.IsUnique ? "item" : "items") %>));
         });
     });
 <%
 %>
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>;
 <%
 }
 // ====================
@@ -502,7 +513,7 @@ var columnsForCreate = CurrentTable.Columns.Where(column => !column.IsPrimaryKey
 pkCount = 0;
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.createNew = function createNew(<%= paramArrayForCreate %>, callback) {
+var createNew = function (<%= paramArrayForCreate %>, callback) {
     var data = {
 <%
 foreach (var column in columnsForCreate)
@@ -525,15 +536,16 @@ foreach (var column in columnsForCreate)
 }
 %>
     };
-    this.validateItem(data, function(err){
-        if (err){ return callback(err); }
+    validateItem(data, function (err) {
+        if (err) { return callback(err); }
         var newItem = new this(data);
-        newItem.save(function(err, item){
-            if (err){ return callback(err); }
+        newItem.save(function (err, item) {
+            if (err) { return callback(err); }
             return callback(null, toDto(item));
         });
     });
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.createNew = createNew;
 <%
 // ==============
 // CREATE - END
@@ -557,7 +569,7 @@ var PAD_WIDTH = 4;
 var pad = string.Empty;
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.createOrGet = function createOrGet(<%= paramArrayForCreate %>, suppressError, callback) {
+var init = function (<%= paramArrayForCreate %>, suppressError, callback) {
     var dupErr = suppressError ? null : (new Error('Duplicate <%= CurrentTable.Name.ToTitle() %> detected'));
 <%
 foreach (var index in CurrentTable.Indexes.Where(x => x.IsUnique && !x.IsPkIndex()))
@@ -565,13 +577,13 @@ foreach (var index in CurrentTable.Indexes.Where(x => x.IsUnique && !x.IsPkIndex
     indent++;
     pad = string.Empty.PadLeft(PAD_WIDTH * indent, ' '); 
 %>
-<%= pad %>this.getOneBy<%= index.CreateUniqueName() %>(<%= index.ToParamsArray() %>, function(err, existing){
-<%= pad %>    if (err){ return callback(err); }
-<%= pad %>    if (existing){ return callback(dupErr, existing); }
+<%= pad %>getOneBy<%= index.CreateUniqueName() %>(<%= index.ToParamsArray() %>, function (err, existing) {
+<%= pad %>    if (err) { return callback(err); }
+<%= pad %>    if (existing) { return callback(dupErr, existing); }
 <%
 }
 %>
-<%= pad %>    this.createNew(<%= paramArrayForCreate %>, callback);
+<%= pad %>    createNew(<%= paramArrayForCreate %>, callback);
 <%
 for (int i = indent; i > 0; i--)
 {
@@ -581,7 +593,8 @@ for (int i = indent; i > 0; i--)
 <%
 }
 %>
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.init = init;
 <%
 // ============
 // INIT - END
@@ -601,8 +614,8 @@ for (int i = indent; i > 0; i--)
 // ==============
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.modifyMany = function modifyMany(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
-    if (!updateDto){   callback(new Error('Nothing to update')); }
+var modifyMany = function (queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    if (!updateDto) { callback(new Error('Nothing to update')); }
 <%
     if (CurrentTable.HasVersionDateColumn())
     {
@@ -617,34 +630,48 @@ for (int i = indent; i > 0; i--)
 <%
     }
 %>
-    var query = toItem(queryDto);
-    var update = toItem(updateDto);
-    return mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').modify(query, update, callback);
-}
-
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.modifyOne = function modifyOne(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
-    if (!updateDto){ return callback(new Error('Nothing to update')); }
-<%
-    if (CurrentTable.HasVersionDateColumn())
-    {
-%>
-    updateDto.<%= CurrentTable.GetVersionDateColumn().Name.ToCamelCase() %> = <%= ValuesVersionDate[CurrentTable.GetVersionDateColumn().NativeType] %>;
-<%
-    }
-    if (CurrentTable.HasVersionUserColumn())
-    {
-%>
-    updateDto.<%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> = <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %>;
-<%
-    }
-%>
-    var query = toItem(queryDto);
-    var update = toItem(updateDto);
-    mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').findOneAndUpdate(query, update, function(err, item){
-        if (err){ return callback(err); }
-        return callback(null, this.toDto(item));
+    var query = toItem(queryDto),
+        update = toItem(updateDto);
+    validateItem(query, function (err) {
+        if (err) { return callback(new Error('Invalid query: ' + err.message)); }
+        validateItem(update, function (err) {
+            if (err) { return callback(new Error('Invalid update: ' + err.message)); }
+            return mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').update(query, update, callback);
+        });
     });
-}
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.modifyMany = modifyMany;
+
+var modifyOne = function (queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    if (!updateDto) { return callback(new Error('Nothing to update')); }
+<%
+    if (CurrentTable.HasVersionDateColumn())
+    {
+%>
+    updateDto.<%= CurrentTable.GetVersionDateColumn().Name.ToCamelCase() %> = <%= ValuesVersionDate[CurrentTable.GetVersionDateColumn().NativeType] %>;
+<%
+    }
+    if (CurrentTable.HasVersionUserColumn())
+    {
+%>
+    updateDto.<%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> = <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %>;
+<%
+    }
+%>
+    var query = toItem(queryDto),
+        update = toItem(updateDto);
+    validateItem(query, function (err) {
+        if (err) { return callback(new Error('Invalid query: ' + err.message)); }
+        validateItem(update, function (err) {
+            if (err) { return callback(new Error('Invalid update: ' + err.message)); }
+            mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').findOneAndUpdate(query, update, function (err, item) {
+                if (err) { return callback(err); }
+                return callback(null, toDto(item));
+            });
+        });
+    });
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.modifyOne = modifyOne;
 <%
 // ==============
 // MODIFY - END
@@ -673,15 +700,17 @@ else
 {
 %>
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.deleteMany = function deleteMany(queryDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+var deleteMany = function (queryDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
     var updateDto = { <%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %>: <%= ValuesDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> };
-    return this.modifyMany(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
-}
+    return modifyMany(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.deleteMany = deleteMany;
 
-<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.deleteOne = function deleteOne(queryDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+var deleteOne = function (queryDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
     var updateDto = { <%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %>: <%= ValuesDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> };
-    return this.modifyOne(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
-}
+    return modifyOne(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.deleteOne = deleteOne;
 <%
 }
 // ==============

@@ -36,8 +36,11 @@ Desc:
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
 <%@ Import Namespace="CodeSmith.Engine" %>
-
+/*jslint node: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+
+'use strict';
+
 var express = require('express');
 
 var apiRouter = express.Router();
