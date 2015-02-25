@@ -1,4 +1,4 @@
-# Mongoose Model Template v0.1.2
+# Mongoose Model Template v0.1.3
 
 ## Summary
 
@@ -19,8 +19,55 @@ Template designed to run in CodeSmith Generator, a Windows-only product.  Once g
 ### Production
 Generated code based runs in any environment supporting NodeJS.  ExpressJS is needed if the API routes are used.
 
+#### ExpressJS Setup
+**1.** Using NPM, install three packages: `dzutils`, `moment`, and `mongoose`;  
+**2.** Add two lines to the Express Generator `app.js` file:  
+<pre>
+var apiRouter = require('./routes/api');  
+app.use('/api', apiRouter);
+</pre>
+**3.** Change the event handlers to:  
+<pre>
+// development error handler
+// will print stacktrace
+if (app.get('env') === 'development') {
+    app.use(function(err, req, res, next) {
+        res.status(err.status || 500);
+        res.send({
+            msg: err.message,
+            err: err
+        });
+    });
+}
+
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.send({
+        msg: err.message,
+        err: {}
+    });
+});
+</pre>
+**4.** Add the Mongoose configuration to the Express Generator `www` file:  
+**This block assumes you have a configuration variable, called 'config,' with the necessary database settings.  Adjust appropriately for your environment:**
+<pre>
+/**
+ * Mongoose
+ */
+var mongoose = require('mongoose');
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, config.name + ' db error'));
+db.once('open', function callback() {
+    console.log(config.name + ' db opened');
+});
+mongoose.connect(config.db);
+</pre>
+**5.** Finally, run `npm install` to bring in the dependencies from Express Generator.  
+
 ## Deviations
-None.
+- Only UID and char (String) data types are used for keys.  Fixed length char fields, from SQL Server, are converted to String keys and must be supplied during any create operation.  All other types (ie. uniqueidentifier, bigint, int, etc.) are converted to String fields and automatically populated with a random UID during create.
 
 ## Future Goals
 Need to improve with feedback from experienced Mongoose / MongoDB developers.  Should also add methods for paging and other advanced features.
@@ -36,6 +83,9 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 - Added route index template (`index.route.js.cst`)
 - Enhanced validation within model (`model.js.cst`)
 
+### v0.1.3
+- Basic CRUD functionality tested and complete.
+
 ---
 
-Last updated: 2/23/2015 6:57:40 PM   
+Last updated: 2/25/2015 12:53:41 PM 

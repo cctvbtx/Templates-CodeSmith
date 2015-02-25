@@ -192,7 +192,7 @@ if (CurrentTable.HasVersionUserColumn())
     <%= CurrentTable.Name.ToCamelCase() %>Model.modifyOne(query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, item) {
         if (err && !item) { throw err; }
         if (err && item) { return res.send({ msg: err.message, item: item }); }
-        return res.send({ item: item });
+        return res.send({});
     });
 });
 <%
