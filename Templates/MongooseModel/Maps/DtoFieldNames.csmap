@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<codeSmith xmlns="http://www.codesmithtools.com/schema/csmap.xsd">
+  <map caseSensitive="false" returnKeyWhenNotFound="true" description="Allows DTO fields to standardize on shortened names to conserve bandwidth.">
+    <item>
+      <key>AuditDeletedDate</key>
+      <value>k</value>
+    </item>
+    <item>
+      <key>AuditMemberId</key>
+      <value>m</value>
+    </item>
+    <item>
+      <key>AuditVersionDate</key>
+      <value>v</value>
+    </item>
+  </map>
+</codeSmith>

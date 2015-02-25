@@ -54,7 +54,8 @@ var pkCount = 0;
 // SCHEMA DEFINITION & INSTANCE VARIABLES - BEGIN
 // ==============================================
 %>
-var moment = require('moment'),
+var dates = require('dzutils').dates,
+    moment = require('moment'),
     mongoose = require('mongoose'),
     strings = require('dzutils').strings,
     uids = require('dzutils').uuids;
@@ -76,16 +77,16 @@ foreach (var column in CurrentTable.Columns)
         case "String":
             validator = (column.IsPrimaryKeyMember || column.IsForeignKeyMember)
                 ? (column.IsFixedLength() ? "strings.isAlphanumeric" : "uids.isIdentifier")
-                : "strings.isValidString";
+                : (column.NativeType == "uniqueidentifier" ? "uids.isIdentifier" : "strings.isValidString");
             validator += (column.AllowDBNull ? "OrNull" : string.Empty);
             
             typeName = (column.IsPrimaryKeyMember || column.IsForeignKeyMember)
                 ? (column.IsFixedLength() ? "code" : "identifier")
-                : "string";
+                : (column.NativeType == "uniqueidentifier" ? "identifier" : "string");
             typeName += (column.AllowDBNull ? " or null value" : string.Empty);
             
             line += ", trim: true";
-            line += (column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? ", uppercase: true" : string.Empty;
+            line += (column.IsPrimaryKeyMember || column.IsForeignKeyMember || column.NativeType == "uniqueidentifier") ? ", uppercase: true" : string.Empty;
             line += (column.IsPrimaryKeyMember && !column.IsFixedLength()) ? ", default: uids.newIdentifier" : string.Empty;
             
             line += ", validate: [" + validator + ", '" + SchemaFieldNames[column.Name.ToCamelCase()] + " ";
@@ -93,7 +94,7 @@ foreach (var column in CurrentTable.Columns)
             line += "is not a valid " + typeName + "']";
             break;
         case "Date":
-            validator = "strings.isDate" + (column.AllowDBNull ? "OrNull" : string.Empty);
+            validator = "dates.isDate" + (column.AllowDBNull ? "OrNull" : string.Empty);
             typeName = "date" + (column.AllowDBNull ? " or null value" : string.Empty);
             
             line += column.IsDeleteFlag() ? ", default: null" : string.Empty;
@@ -212,7 +213,7 @@ foreach (var column in CurrentTable.Columns)
     switch ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType])
     {
         case "String":
-            if ((column.IsPrimaryKeyMember || column.IsForeignKeyMember))
+            if (column.IsPrimaryKeyMember || column.IsForeignKeyMember || column.NativeType.Equals("uniqueidentifier"))
             {
                 if (column.IsFixedLength())
                 {
@@ -624,7 +625,7 @@ for (int i = indent; i > 0; i--)
 %>
 
 var modifyMany = function (queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
-    if (!updateDto) { callback(new Error('Nothing to update')); }
+    if (!updateDto) { return callback(new Error('Nothing to update')); }
 <%
     if (CurrentTable.HasVersionDateColumn())
     {
