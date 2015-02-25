@@ -54,7 +54,7 @@ foreach(var owner in owners)
     foreach (var table in tables)
     {
 %>
-var <%= StringUtil.ToPlural(table.Name).ToCamelCase() %> = require('./<%= (isDefaultOwner ? "" : owner.ToHypehatedLowercase() + "/") %><%= table.Name.ToHypehatedLowercase() %>');
+var <%= StringUtil.ToPlural(table.Name).ToCamelCase() %> = require('./<%= (isDefaultOwner ? "" : owner.ToHypehatedLowercase() + "/") %><%= table.Name.ToHypehatedLowercase() %>.model');
 <%
     }
 }

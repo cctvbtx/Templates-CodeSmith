@@ -40,7 +40,7 @@ Desc:
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
 var express = require('express');
 
-module.exports = function(app){
+var apiRouter = express.Router();
 <%
 var owners = SourceDatabase.GetOwners(true);
 var defaultOwner = SourceDatabase.GetDefaultOwner();
@@ -49,17 +49,30 @@ foreach(var owner in owners)
 {
     var isDefaultOwner = (owner == defaultOwner);
     var tables = SourceDatabase.Tables.Where(x => x.Owner.Equals(owner, StringComparison.OrdinalIgnoreCase)).ToList();
+    
+    var header = (isDefaultOwner ? "Default (No Schema)" : owner.ToSentence(' ', SentenceCase.Title)) + " (" + tables.Count + (tables.Count == 1 ? " table" : " tables") + ") - BEGIN";
+    var spacer = string.Empty.PadLeft(header.Length, '=');
 %>
 
-    // <%= (isDefaultOwner ? "Default (No Schema)" : owner.ToSentence(' ', SentenceCase.Title)) %> (<%= tables.Count %> <%= (tables.Count == 1 ? "table" : "tables") %>)
-<%
+// <%= spacer %>
+// <%= header %>
+// <%= spacer %>
+<% 
     foreach (var table in tables)
     {
 %>
-    require('./<%= (isDefaultOwner ? "" : owner.ToHypehatedLowercase() + "/") %><%= table.Name.ToHypehatedLowercase() %>.route');
+
+var <%= table.Name.ToCamelCase() %>Router = require('./<%= (isDefaultOwner ? "" : owner.ToHypehatedLowercase() + "/") %><%= table.Name.ToHypehatedLowercase() %>.routes');
+apiRouter.use('/<%= table.Name.ToHypehatedLowercase() %>', <%= table.Name.ToCamelCase() %>Router);
 <%
     }
+%>
+
+// <%= spacer %>
+// <%= header.Replace(") - BEGIN", ") - END") %>
+// <%= spacer %>
+<% 
 }
 %>
 
-};
+module.exports = apiRouter;
