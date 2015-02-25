@@ -6,7 +6,7 @@
 Provides data logic methods and API access routes to simplify creating data access for NodeJS applications.  Design is done through SQL Server Diagram tool.  Generates Mongoose schemas for MongoDB and direct routes to each data call from an ExpressJS API route.  Allows for dynamically replacing lengthy variable names with shortened versions within the MongoDB database.
 
 ### Status
-In development.  Initial creation uploaded to repository.  Testing beginning.
+Basic CRUD functionality tested and complete.
 
 ## Requirements
 
