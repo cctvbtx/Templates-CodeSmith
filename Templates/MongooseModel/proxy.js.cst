@@ -56,13 +56,14 @@ var operations = new List<string>();
 // SCHEMA DEFINITION & INSTANCE VARIABLES - BEGIN
 // ==============================================
 %>
-var config = require('<%= (CurrentTable.HasDefaultOnwer() ? "" : "../") %>../../config');
+var config = require('<%= (CurrentTable.HasDefaultOnwer() ? "" : "../") %>../../config'),
     dates = require('dzutils').dates,
     request = require('request-json'),
     strings = require('dzutils').strings,
     uids = require('dzutils').uuids;
     
-var URL_PATH = config.proxies.<%= ProjectName %>.url + 'api/<%= CurrentTable.Name.ToHypehatedLowercase() %>/';
+var BASE_URL = config.proxies.<%= ProjectName %>.url,
+    URL_PATH = 'api/<%= CurrentTable.Name.ToHypehatedLowercase() %>';
 <%
 
 
@@ -90,7 +91,7 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 
-    var text = "if (typeof item.{0} !== 'undefined') { if ({1}(item.{2})) { return callback(new Error('{3} is not a valid {4}')); } else { {5} } }";
+    var text = "if (typeof item.{0} !== 'undefined') { if ({1}(item.{2})) { return callback(new Error('{3} is not a valid {4}')); }{5} }";
     text = text.Replace("{0}", column.Name.ToCamelCase());
     text = text.Replace("{2}", column.Name.ToCamelCase());
     if (column.Name.ToCamelCase().Equals(DtoFieldNames[column.Name.ToCamelCase()], StringComparison.Ordinal)){ text = text.Replace("{3}", column.Name.ToCamelCase()); }
@@ -116,7 +117,7 @@ foreach (var column in CurrentTable.Columns)
             {
                 text = text.Replace("{1}", "!strings.isValidString" + (column.AllowDBNull ? "OrNull" : string.Empty));
             }
-            text = text.Replace("{5}", "item." + column.Name.ToCamelCase() + " = strings.trimToNull(item." + column.Name.ToCamelCase() + ");");
+            text = text.Replace("{5}", " else { strings.trimToNull(item." + column.Name.ToCamelCase() + "); }");
             break;
         case "Date":
         case "Number":
@@ -309,9 +310,9 @@ operations.Add("getById");
 %>
 
 var getAll = function (callback) {
-    var client = request.newClient(baseUrl);
+    var client = request.newClient(BASE_URL);
     client.get(URL_PATH, function (err, res, body) {
-        if (err && res.statusCode == 404) { console.log("not found"); return callback(); }
+        if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
         if (err) { return callback(err); }
         if (!body || !body.items || body.items.length < 1) { console.log("not returned"); return callback(); }
         return callback(null, toItems(body.items));
@@ -320,10 +321,10 @@ var getAll = function (callback) {
 
 var getById = function (id, callback) {
     if (!<%= CurrentTable.PrimaryKey.MemberColumns[0].IsFixedLength() ? "strings.isValidString" : "uids.isIdentifier" %>(id)) { return callback(new Error('Invalid id')); }
-    var client = request.newClient(baseUrl);
-    var url = URL_PATH + id;
+    var client = request.newClient(BASE_URL),
+        url = URL_PATH + '/' + id;
     client.get(url, function (err, res, body) {
-        if (err && res.statusCode == 404) { console.log("not found"); return callback(); }
+        if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
         if (err) { return callback(err); }
         if (!body || !body.item) { console.log("not returned"); return callback(); }
         return callback(null, toItem(body.item));
@@ -384,10 +385,10 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = f
     };
     validateItem(item, function (err) {
         if (err) { return callback(err); }
-        var client = request.newClient(baseUrl),
-            url = URL_PATH + '<%= opName.ToHypehatedLowercase() %>';
+        var client = request.newClient(BASE_URL),
+            url = URL_PATH + '/<%= opName.ToHypehatedLowercase() %>';
         client.post(url, toDto(item), function (err, res, body) {
-            if (err && res.statusCode == 404) { console.log("not found"); return callback(); }
+            if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
             if (err) { return callback(err); }
 <%
     if (index.IsUnique)
@@ -407,7 +408,7 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = f
     }
 %>
         });
-    });    
+    });
 <%
 %>
 };
@@ -473,16 +474,16 @@ foreach (var column in columnsForCreate)
     };
     validateItem(item, function (err) {
         if (err) { return callback(err); }
-        var client = request.newClient(baseUrl);
+        var client = request.newClient(BASE_URL);
         client.post(URL_PATH, toDto(item), function (err, res, body) {
             if (err) { return callback(err); }
             var response = {
                 id: (body && body.id ? body.id : null),
                 msg: (body && body.msg ? body.msg : null)
-            }
+            };
             return callback(null, response);
         });
-    });      
+    });
 };
 <%
 // ============
@@ -504,23 +505,24 @@ foreach (var column in columnsForCreate)
 
 operations.Add("modifyMany");
 operations.Add("modifyOne");
+operations.Add("modifyById");
 %>
 
 var modifyMany = function (query, update<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
     if (!query) { return callback(new Error('Query params required but not supplied')); }
     if (!update) { return callback(new Error('Update params required by not supplied')); }
-    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>}
+    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>};
     validateItem(data, function (err) {     // Validate any user value that may exist
         if (err) { return callback(err); }
         validateItem(query, function (err) {
             if (err) { return callback(new Error('Invalid query: ' + err.message)); }
             validateItem(update, function (err) {
                 if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var dto = toDto(data);
+                var client = request.newClient(BASE_URL),
+                    dto = toDto(data);
                 dto.query = toDto(query);
                 dto.update = toDto(update);
-                var client = request.newClient(baseUrl);
-                client.post(URL_PATH, dto, function (err, res, body) {
+                client.put(URL_PATH + '/many', dto, function (err, res, body) {
                     if (err) { return callback(err); }
                     return callback(null, body);
                 });
@@ -532,24 +534,28 @@ var modifyMany = function (query, update<%= CurrentTable.HasVersionUserColumn() 
 var modifyOne = function (query, update<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
     if (!query) { return callback(new Error('Query params required but not supplied')); }
     if (!update) { return callback(new Error('Update params required by not supplied')); }
-    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>}
+    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>};
     validateItem(data, function (err) {     // Validate any user value that may exist
         if (err) { return callback(err); }
         validateItem(query, function (err) {
             if (err) { return callback(new Error('Invalid query: ' + err.message)); }
             validateItem(update, function (err) {
                 if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var dto = toDto(data);
+                var client = request.newClient(BASE_URL),
+                    dto = toDto(data);
                 dto.query = toDto(query);
                 dto.update = toDto(update);
-                var client = request.newClient(baseUrl);
-                client.post(URL_PATH, dto, function (err, res, body) {
+                client.put(URL_PATH, dto, function (err, res, body) {
                     if (err) { return callback(err); }
                     return callback(null, body);
                 });
             });
         });
     });
+};
+
+var modifyById = function (id, update<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    return modifyOne({ id: id }, update<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
 };
 <%
 // ==============
@@ -579,22 +585,23 @@ else
 {
     operations.Add("deleteMany");
     operations.Add("deleteOne");
+    operations.Add("deleteById");
 %>
 
 var deleteMany = function (query<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
     if (!query) { return callback(new Error('Query params required but not supplied')); }
-    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>}
+    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>};
     validateItem(data, function (err) {     // Validate any user value that may exist
         if (err) { return callback(err); }
         validateItem(query, function (err) {
             if (err) { return callback(new Error('Invalid query: ' + err.message)); }
             validateItem(update, function (err) {
                 if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var dto = toDto(data);
+                var dto = toDto(data),
+                    client = request.newClient(BASE_URL);
                 dto.query = toDto(query);
                 dto.update = toDto(update);
-                var client = request.newClient(baseUrl);
-                client.put(URL_PATH, dto, function (err, res, body) {
+                client.delete(URL_PATH + '/many', dto, function (err, res, body) {
                     if (err) { return callback(err); }
                     return callback(null, body);
                 });
@@ -605,24 +612,28 @@ var deleteMany = function (query<%= CurrentTable.HasVersionUserColumn() ? (", " 
 
 var deleteOne = function (query<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
     if (!query) { return callback(new Error('Query params required but not supplied')); }
-    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>}
+    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>};
     validateItem(data, function (err) {     // Validate any user value that may exist
         if (err) { return callback(err); }
         validateItem(query, function (err) {
             if (err) { return callback(new Error('Invalid query: ' + err.message)); }
             validateItem(update, function (err) {
                 if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var dto = toDto(data);
+                var client = request.newClient(BASE_URL),
+                    dto = toDto(data);
                 dto.query = toDto(query);
                 dto.update = toDto(update);
-                var client = request.newClient(baseUrl);
-                client.put(URL_PATH, dto, function (err, res, body) {
+                client.delete(URL_PATH, dto, function (err, res, body) {
                     if (err) { return callback(err); }
                     return callback(null, body);
                 });
             });
         });
     });
+};
+
+var deleteById = function (id<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    return deleteOne({ id: id }<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
 };
 <%
 }

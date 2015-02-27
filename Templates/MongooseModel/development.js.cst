@@ -1,0 +1,53 @@
+﻿<%-- 
+Name:   development.js.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Desc:
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="Text" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
+<%@ Property Name="OutputDirectory" Type="System.String" Optional="True" %>
+<%@ Property Name="OutputVersioning" Type="System.Boolean" Optional="True" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="ProjectName" Type="System.String" Optional="True" %>
+<%@ Property Name="VersionText" Type="System.String" Optional="True" %>
+<%@ Property Name="ProjectDescription" Type="System.String" Optional="True" %>
+<%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%-- Local Properties --%>
+<%@ Property Name="FileName" Type="System.String" Optional="True" %>
+
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.Engine" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+<%@ Import Namespace="CodeSmith.Engine" %>
+/*jslint node: true */
+<!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+
+'use strict';
+
+module.exports = {
+    name: '<%= ProjectName %>',
+    description: '<%= ProjectDescription %>',
+    
+    proxies: {
+        <%= ProjectName %>: {
+            url: ''
+        }
+    }
+};

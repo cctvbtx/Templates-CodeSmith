@@ -34,7 +34,7 @@ Desc:
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
-/*jslint node: true, nomen: true */
+/*jslint node: true, nomen: true, es5: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
 
 'use strict';
@@ -202,7 +202,7 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 
-    var text = "if (typeof item.{0} !== 'undefined') { if ({1}(item.{2})) { return callback(new Error('{3} is not a valid {4}')); } else { {5} } }";
+    var text = "if (typeof item.{0} !== 'undefined') { if ({1}(item.{2})) { return callback(new Error('{3} is not a valid {4}')); }{5} }";
     text = text.Replace("{0}", SchemaFieldNames[column.Name.ToCamelCase()]);
     text = text.Replace("{2}", SchemaFieldNames[column.Name.ToCamelCase()]);
     if (SchemaFieldNames[column.Name.ToCamelCase()].Equals(column.Name.ToCamelCase(), StringComparison.Ordinal)){ text = text.Replace("{3}", SchemaFieldNames[column.Name.ToCamelCase()]); }
@@ -228,7 +228,7 @@ foreach (var column in CurrentTable.Columns)
             {
                 text = text.Replace("{1}", "!strings.isValidString" + (column.AllowDBNull ? "OrNull" : string.Empty));
             }
-            text = text.Replace("{5}", "item." + SchemaFieldNames[column.Name.ToCamelCase()] + " = strings.trimToNull(item." + SchemaFieldNames[column.Name.ToCamelCase()] + ");");
+            text = text.Replace("{5}", " else { item." + SchemaFieldNames[column.Name.ToCamelCase()] + " = strings.trimToNull(item." + SchemaFieldNames[column.Name.ToCamelCase()] + "); }");
             break;
         case "Date":
         case "Number":
@@ -548,7 +548,7 @@ foreach (var column in columnsForCreate)
     };
     validateItem(data, function (err) {
         if (err) { return callback(err); }
-        var newItem = new <%= CurrentTable.Name.ToCamelCase() %>(data);
+        var newItem = new <%= CurrentTable.Name.ToPascalCase() %>(data);
         newItem.save(function (err, item) {
             if (err) { return callback(err); }
             return callback(null, toDto(item));
@@ -729,6 +729,6 @@ var deleteOne = function (queryDto<%= CurrentTable.HasVersionUserColumn() ? (", 
 // ==============
 %>
 
-var <%= CurrentTable.Name.ToCamelCase() %> = mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>', <%= CurrentTable.Name.ToCamelCase() %>Schema);
+var <%= CurrentTable.Name.ToPascalCase() %> = mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>', <%= CurrentTable.Name.ToCamelCase() %>Schema);
 
-module.exports = <%= CurrentTable.Name.ToCamelCase() %>;
+module.exports = <%= CurrentTable.Name.ToPascalCase() %>;

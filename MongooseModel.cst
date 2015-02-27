@@ -36,6 +36,8 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%-- ###########################################################################
      PER DATABASE TEMPLATES
      ########################################################################### --%>
+<%@ Register Name="Development" Template="Templates/MongooseModel/development.js.cst" %>
+<%@ Register Name="ConfigIndex" Template="Templates/MongooseModel/index.config.js.cst" %>
 <%@ Register Name="DataIndex" Template="Templates/MongooseModel/index.data.js.cst" %>
 <%@ Register Name="RouteIndex" Template="Templates/MongooseModel/index.route.js.cst" %>
 
@@ -43,6 +45,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
      PER TABLE TEMPLATES
      ########################################################################### --%>
 <%@ Register Name="Model" Template="Templates/MongooseModel/model.js.cst" %>
+<%@ Register Name="Proxy" Template="Templates/MongooseModel/proxy.js.cst" %>
 <%@ Register Name="Route" Template="Templates/MongooseModel/route.js.cst" %>
 
 <script runat="template">
@@ -52,8 +55,8 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
     public override void Render(TextWriter writer)
     {
         var buildPath = OutputVersioning 
-            ? Path.Combine(OutputDirectory, DateTime.Now.GetDateString("yyyyMMddhhmmss")) 
-            : Path.Combine(OutputDirectory);
+            ? Path.Combine(OutputDirectory, DateTime.Now.GetDateString("yyyyMMddhhmmss"), ProjectName) 
+            : Path.Combine(OutputDirectory, ProjectName);
         
         if ( !renderPerDatabaseTemplates(buildPath) ){ return; }
         if ( !renderPerTableTemplates(buildPath) ){ return; }
@@ -61,6 +64,8 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
     
     private bool renderPerDatabaseTemplates(string buildPath)
     {
+        var strategy = new PreserveRegionsMergeStrategy("^[ \\t]*[ \\s]*\"?(?i:Custom)\"?", "JavaScript");
+
         var outputDir = Path.Combine(buildPath, "models");
         var file = default(OutputFile);
         var fileName = string.Empty;
@@ -68,14 +73,31 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
         if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
         
-        var strategy = new PreserveRegionsMergeStrategy("^[ \\t]*[ \\s]*\"?(?i:Custom)\"?", "JavaScript");
-        
         fileName = "index.js";
         file = new OutputFile(Path.Combine(outputDir, fileName));
         DataIndex _DataIndex = this.Create<DataIndex>();
         this.CopyPropertiesTo(_DataIndex);
         _DataIndex.FileName = fileName;
         _DataIndex.RenderToFile(file, true);
+
+        outputDir = Path.Combine(buildPath, "config");
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+        
+        fileName = "development.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        Development _Development = this.Create<Development>();
+        this.CopyPropertiesTo(_Development);
+        _Development.FileName = fileName;
+        _Development.RenderToFile(file, true);
+
+        fileName = "index.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        ConfigIndex _ConfigIndex = this.Create<ConfigIndex>();
+        this.CopyPropertiesTo(_ConfigIndex);
+        _ConfigIndex.FileName = fileName;
+        _ConfigIndex.RenderToFile(file, true);
 
         outputDir = Path.Combine(buildPath, "routes", "api");
 
@@ -114,6 +136,21 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _Route.FileName = fileName;
             _Route.CurrentTable = table;
             _Route.RenderToFile(file, true);
+            
+            outputDir = table.HasDefaultOnwer()
+                ? Path.Combine(buildPath + ".Proxies")
+                : Path.Combine(buildPath + ".Proxies", table.Owner.ToHypehatedLowercase());
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = table.Name.ToHypehatedLowercase() + ".proxy.js";
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            Proxy _Proxy = this.Create<Proxy>();
+            this.CopyPropertiesTo(_Proxy);
+            _Proxy.FileName = fileName;
+            _Proxy.CurrentTable = table;
+            _Proxy.RenderToFile(file, true);
             
             outputDir = table.HasDefaultOnwer()
                 ? Path.Combine(buildPath, "models")
