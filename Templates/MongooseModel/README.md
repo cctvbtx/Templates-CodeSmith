@@ -5,6 +5,20 @@
 ### Background
 Creates MEAN Stack CRUD API web service, and proxy libraries for connecting to that web service, from a SQL Server database (based on the standard express-generator).  This allows a model-first approach to creating MEAN Stack web services in that the modeling can be done through tools such as SQL Server Diagram Tool.  All features of the global templates are supported (non-destructive deletes, audit trails, etc.).
 
+### Details
+Two folders are generated:
+
+#### %PROJECT_NAME%
+This is the main ExpressJS application.  All npm scripts are run from this folder.
+
+#### %PROJECT_NAME%.Proxies
+Resource files used by other projects for connecting to this ExpressJS application.  Adding these files to a separate project (for example, via SVN Externals) provides a consistent means of making API calls to this project.
+
+### Features
+
+#### Space Saving Names
+Two map files are provided with the template: `DtoFieldNames.map` and `SchemaFieldNames.map`.  Using these maps allow you to model your database with plain English table names and field names, and to have these verbose names within business objects, but then generate smaller names for use in the database and data transfer objects (DTOs).  The overall goal is to conserve space in the MongoDB database and over the wire with API calls.  For example, the audit field "AuditVersionMemberId" is use while modeling the database but is shortened to "_m" with the Mongoose schema.
+
 ### Status
 Basic CRUD functionality tested and complete.
 
@@ -72,4 +86,4 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 
 ---
 
-Last updated: 2/27/2015 6:05:56 PM 
+Last updated: 2/27/2015 6:24:33 PM  
