@@ -3,7 +3,7 @@ Name:   index.config.js.cst
 Author: Fred Lackey <fred.lackey@gmail.com>
 Desc:
 --%>
-<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="Text" CompilerVersion="v4.5" Description="" %>
+<%@ CodeTemplate Language="C#" TargetLanguage="JavaScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
 
 <%-- 01. Setup --%>
 <%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
@@ -15,6 +15,18 @@ Desc:
 <%@ Property Name="VersionText" Type="System.String" Optional="True" %>
 <%@ Property Name="ProjectDescription" Type="System.String" Optional="True" %>
 <%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%-- 03. Dev Config --%>
+<%@ Property Name="DevHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="DevHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="DevDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="DevDbName" Type="System.String" Optional="True" %>
+
+<%-- 03. Prod Config --%>
+<%@ Property Name="ProdHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="ProdDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdDbName" Type="System.String" Optional="True" %>
 
 <%-- Local Properties --%>
 <%@ Property Name="FileName" Type="System.String" Optional="True" %>

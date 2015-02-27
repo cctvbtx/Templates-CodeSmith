@@ -3,14 +3,34 @@ Name:   model.js.cst
 Author: Fred Lackey <fred.lackey@gmail.com>
 Desc:
 --%>
-<%@ CodeTemplate Language="C#" TargetLanguage="JScript" OutputType="Text" CompilerVersion="v4.5" Description="" %>
+<%@ CodeTemplate Language="C#" TargetLanguage="JavaScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
+<%@ Property Name="OutputDirectory" Type="System.String" Optional="True" %>
+<%@ Property Name="OutputVersioning" Type="System.Boolean" Optional="True" %>
 
 <%-- 02. Project --%>
+<%@ Property Name="ProjectName" Type="System.String" Optional="True" %>
+<%@ Property Name="VersionText" Type="System.String" Optional="True" %>
+<%@ Property Name="ProjectDescription" Type="System.String" Optional="True" %>
 <%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
 
+<%-- 03. Dev Config --%>
+<%@ Property Name="DevHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="DevHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="DevDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="DevDbName" Type="System.String" Optional="True" %>
+
+<%-- 03. Prod Config --%>
+<%@ Property Name="ProdHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="ProdDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdDbName" Type="System.String" Optional="True" %>
+
 <%-- Local Properties --%>
-<%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
 <%@ Property Name="FileName" Type="System.String" Optional="True" %>
+<%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
 
 <%@ Map Name="DefaultsDelFlag" Src="Maps\DefaultsDelFlag.csmap" %>
 <%@ Map Name="SchemaFieldNames" Src="Maps\SchemaFieldNames.csmap" %>
@@ -57,6 +77,7 @@ var pkCount = 0;
 var dates = require('dzutils').dates,
     moment = require('moment'),
     mongoose = require('mongoose'),
+    numbers = require('dzutils').numbers,
     strings = require('dzutils').strings,
     uids = require('dzutils').uuids;
 
@@ -105,8 +126,8 @@ foreach (var column in CurrentTable.Columns)
             break;
         case "Number":
             validator = (column.IsVersionDateColumn() || column.IsDeleteFlag())
-                ? "strings.isUnixDateStamp"
-                : "strings.isNumber";
+                ? "dates.isUnixDateStamp"
+                : "numbers.isNumber";
             validator += (column.AllowDBNull ? "OrNull" : string.Empty);
             
             typeName = (column.IsVersionDateColumn() || column.IsDeleteFlag())

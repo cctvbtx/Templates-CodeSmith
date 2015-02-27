@@ -1,5 +1,5 @@
 ﻿<%-- 
-CodeSmith SOA template
+MEAN Stack Web Service Template (without AngularJS)
 Author:  Fred Lackey <fred.lackey@gmail.com>
 --%>
 <%@ CodeTemplate Language="C#" TargetLanguage="Text" OutputType="None" CompilerVersion="v4.5" Description="" %>
@@ -17,6 +17,24 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Property Name="VersionText" Type="System.String" Category="02. Project" Optional="False" Default="1.0.0" Description="(Numeric - ex: Major.Minor.Revision)  Version of generated application or database.  Used in package.json." OnChanged="OnSetupChanged" %>
 <%@ Property Name="ProjectDescription" Type="System.String" Category="02. Project" Optional="True" Default="My MEAN project" Description="Formal name or a few words to describe the project.  Used in package.json." OnChanged="OnSetupChanged" %>
 <%@ Property Name="AuthorName" Type="System.String" Category="02. Project" Optional="True" Description="Name and/or email address of author.  Used in package.json." OnChanged="OnSetupChanged" %>
+
+<%-- 03. Dev Config --%>
+<%@ Property Name="DevHostName" Type="System.String" Category="03. Dev Config" Optional="False" Default="localhost" Description="FQDN of development (local) machine." OnChanged="OnSetupChanged" %>
+<%@ Property Name="DevHostPort" Type="System.Int32" Category="03. Dev Config" Optional="False" Default="3030" Description="Port of development (local) server process." OnChanged="OnSetupChanged" %>
+<%@ Property Name="DevDbFQDN" Type="System.String" Category="03. Dev Config" Optional="True" Default="localhost" Description="Name of the development MongoDB collection." OnChanged="OnSetupChanged" %>
+<%@ Property Name="DevDbName" Type="System.String" Category="03. Dev Config" Optional="True" Default="" Description="FQDN of the development DB server." OnChanged="OnSetupChanged" %>
+
+<%-- 03. Prod Config --%>
+<%@ Property Name="ProdHostName" Type="System.String" Category="03. Prod Config" Optional="False" Default="localhost" Description="FQDN of production (local) machine." OnChanged="OnSetupChanged" %>
+<%@ Property Name="ProdHostPort" Type="System.Int32" Category="03. Prod Config" Optional="False" Default="80" Description="Port of production (local) server process." OnChanged="OnSetupChanged" %>
+<%@ Property Name="ProdDbFQDN" Type="System.String" Category="03. Prod Config" Optional="False" Default="dbuser:dbpass@ds123456.mongolab.com:12345" Description="Name of the production MongoDB collection." OnChanged="OnSetupChanged" %>
+<%@ Property Name="ProdDbName" Type="System.String" Category="03. Prod Config" Optional="True" Default="" Description="FQDN of the production DB server." OnChanged="OnSetupChanged" %>
+
+<%-- 04. Options --%>
+<%@ Property Name="DirectRoutes" Type="System.Boolean" Category="04. Options" Default="True" Description="Routes directly manipulating the database (not using the data repository) will be generated." OnChanged="OnSetupChanged" %>
+<%@ Property Name="DirectRoutesPrefix" Type="System.String" Category="04. Options" Default="api" Description="URI prefix for direct web service routes" OnChanged="OnSetupChanged" %>
+<%@ Property Name="RepoRoutes" Type="System.Boolean" Category="04. Options" Default="True" Description="Routes calling upon the data repository will be generated." OnChanged="OnSetupChanged" %>
+<%@ Property Name="RepoRoutesPrefix" Type="System.String" Category="04. Options" Default="repo" Description="URI prefix for web service routes using the data repository" OnChanged="OnSetupChanged" %>
 
 <%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="Templates\Common" %>
 
@@ -36,10 +54,20 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%-- ###########################################################################
      PER DATABASE TEMPLATES
      ########################################################################### --%>
+<%@ Register Name="App" Template="Templates/MongooseModel/app.js.cst" %>
+<%@ Register Name="ErrorJade" Template="Templates/MongooseModel/error.jade.cst" %>
+<%@ Register Name="IndexJade" Template="Templates/MongooseModel/index.jade.cst" %>
+<%@ Register Name="LayoutJade" Template="Templates/MongooseModel/layout.jade.cst" %>
+<%@ Register Name="WwwIndex" Template="Templates/MongooseModel/index.www.js.cst" %>
+
+<%@ Register Name="Production" Template="Templates/MongooseModel/production.js.cst" %>
 <%@ Register Name="Development" Template="Templates/MongooseModel/development.js.cst" %>
+
 <%@ Register Name="ConfigIndex" Template="Templates/MongooseModel/index.config.js.cst" %>
 <%@ Register Name="DataIndex" Template="Templates/MongooseModel/index.data.js.cst" %>
 <%@ Register Name="RouteIndex" Template="Templates/MongooseModel/index.route.js.cst" %>
+<%@ Register Name="Package" Template="Templates/MongooseModel/package.json.cst" %>
+<%@ Register Name="Www" Template="Templates/MongooseModel/www.js.cst" %>
 
 <%-- ###########################################################################
      PER TABLE TEMPLATES
@@ -98,6 +126,25 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         this.CopyPropertiesTo(_ConfigIndex);
         _ConfigIndex.FileName = fileName;
         _ConfigIndex.RenderToFile(file, true);
+        
+        fileName = "production.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        Production _Production = this.Create<Production>();
+        this.CopyPropertiesTo(_Production);
+        _Production.FileName = fileName;
+        _Production.RenderToFile(file, true);
+
+        outputDir = Path.Combine(buildPath, "routes");
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+        
+        fileName = "index.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        WwwIndex _WwwIndex = this.Create<WwwIndex>();
+        this.CopyPropertiesTo(_WwwIndex);
+        _WwwIndex.FileName = fileName;
+        _WwwIndex.RenderToFile(file, true);
 
         outputDir = Path.Combine(buildPath, "routes", "api");
 
@@ -110,6 +157,63 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         this.CopyPropertiesTo(_RouteIndex);
         _RouteIndex.FileName = fileName;
         _RouteIndex.RenderToFile(file, true);
+
+        outputDir = buildPath;
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+        
+        fileName = "app.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        App _App = this.Create<App>();
+        this.CopyPropertiesTo(_App);
+        _App.FileName = fileName;
+        _App.RenderToFile(file, true);
+        
+        fileName = "package.json";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        Package _Package = this.Create<Package>();
+        this.CopyPropertiesTo(_Package);
+        _Package.FileName = fileName;
+        _Package.RenderToFile(file, true);
+
+        outputDir = Path.Combine(buildPath, "scripts");
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+        
+        fileName = "www.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        Www _Www = this.Create<Www>();
+        this.CopyPropertiesTo(_Www);
+        _Www.FileName = fileName;
+        _Www.RenderToFile(file, true);
+
+        outputDir = Path.Combine(buildPath, "views");
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+        
+        fileName = "error.jade";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        ErrorJade _ErrorJade = this.Create<ErrorJade>();
+        this.CopyPropertiesTo(_ErrorJade);
+        _ErrorJade.FileName = fileName;
+        _ErrorJade.RenderToFile(file, true);
+        
+        fileName = "layout.jade";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        LayoutJade _LayoutJade = this.Create<LayoutJade>();
+        this.CopyPropertiesTo(_LayoutJade);
+        _LayoutJade.FileName = fileName;
+        _LayoutJade.RenderToFile(file, true);
+        
+        fileName = "index.jade";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        IndexJade _IndexJade = this.Create<IndexJade>();
+        this.CopyPropertiesTo(_IndexJade);
+        _IndexJade.FileName = fileName;
+        _IndexJade.RenderToFile(file, true);
         
         return true;
     }
@@ -174,6 +278,10 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
     private void OnSetupChanged(object sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(AuthorName)){ AuthorName = Environment.UserName; }
+        
+        var dbName = SourceDatabase == null ? string.Empty : SourceDatabase.Name.Clean(CommonStrings.Alphanumeric, false);
+        if (string.IsNullOrEmpty(DevDbName) && !string.IsNullOrEmpty(dbName)){ DevDbName = dbName; }
+        if (string.IsNullOrEmpty(ProdDbName) && !string.IsNullOrEmpty(dbName)){ ProdDbName = dbName; }
     }
     
     public override IEnumerable<ValidationError> GetCustomValidationErrors() 

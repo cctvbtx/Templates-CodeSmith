@@ -1,9 +1,9 @@
 ﻿<%-- 
-Name:   development.js.cst
+Name:   layout.jade.cst
 Author: Fred Lackey <fred.lackey@gmail.com>
 Desc:
 --%>
-<%@ CodeTemplate Language="C#" TargetLanguage="JavaScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+<%@ CodeTemplate Language="C#" TargetLanguage="Text" OutputType="None" CompilerVersion="v4.5" Description="" %>
 
 <%-- 01. Setup --%>
 <%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
@@ -37,7 +37,6 @@ Desc:
 <%@ Assembly Name="CodeSmith.BaseTemplates" %>
 <%@ Assembly Name="CodeSmith.Core" %>
 <%@ Assembly Name="CodeSmith.CustomProperties" %>
-<%@ Assembly Name="CodeSmith.Engine" %>
 
 <%@ Import Namespace="SchemaExplorer" %>
 <%@ Import Namespace="System.IO" %>
@@ -45,27 +44,13 @@ Desc:
 <%@ Import Namespace="System.Collections.Generic" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
-<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
-<%@ Import Namespace="CodeSmith.Engine" %>
-<%
-var url = (DevHostPort == 80)
-    ? DevHostName
-    : DevHostName + ":" + DevHostPort;
-%>
-/*jslint node: true */
+
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
-
-'use strict';
-
-module.exports = {
-    name: '<%= ProjectName %>',
-    description: '<%= ProjectDescription %> (dev)',
-    db: 'mongo://<%= DevDbFQDN %>/<%= DevDbName %>',
-    port: <%= DevHostPort %>,
-    proxies: {
-        <%= ProjectName %>: {
-            url: 'http://<%= url %>/'
-        }
-    }
-};
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+    block content

@@ -1,5 +1,5 @@
 ﻿<%-- 
-Name:   development.js.cst
+Name:   www.js.cst
 Author: Fred Lackey <fred.lackey@gmail.com>
 Desc:
 --%>
@@ -37,7 +37,6 @@ Desc:
 <%@ Assembly Name="CodeSmith.BaseTemplates" %>
 <%@ Assembly Name="CodeSmith.Core" %>
 <%@ Assembly Name="CodeSmith.CustomProperties" %>
-<%@ Assembly Name="CodeSmith.Engine" %>
 
 <%@ Import Namespace="SchemaExplorer" %>
 <%@ Import Namespace="System.IO" %>
@@ -45,27 +44,97 @@ Desc:
 <%@ Import Namespace="System.Collections.Generic" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
-<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
-<%@ Import Namespace="CodeSmith.Engine" %>
-<%
-var url = (DevHostPort == 80)
-    ? DevHostName
-    : DevHostName + ":" + DevHostPort;
-%>
-/*jslint node: true */
+
+#!/usr/bin/env nodemon
+
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
 
-'use strict';
+/**
+ * Module dependencies.
+ */
 
-module.exports = {
-    name: '<%= ProjectName %>',
-    description: '<%= ProjectDescription %> (dev)',
-    db: 'mongo://<%= DevDbFQDN %>/<%= DevDbName %>',
-    port: <%= DevHostPort %>,
-    proxies: {
-        <%= ProjectName %>: {
-            url: 'http://<%= url %>/'
-        }
-    }
-};
+var app = require('../app');
+var debug = require('debug')('ARCatalogJS:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}

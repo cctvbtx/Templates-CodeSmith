@@ -47,6 +47,7 @@ Desc:
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
+<!-- #include file="..\Common\Includes\Header-JSON.cst" -->
 {
   "name": "<%= ProjectName %>",
   "description": "<%= ProjectDescription %>",

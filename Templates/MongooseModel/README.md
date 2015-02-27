@@ -1,9 +1,9 @@
-# Mongoose Model Template v0.1.3
+# Mongoose Model Template v0.1.4
 
 ## Summary
 
 ### Background
-Provides data logic methods and API access routes to simplify creating data access for NodeJS applications.  Design is done through SQL Server Diagram tool.  Generates Mongoose schemas for MongoDB and direct routes to each data call from an ExpressJS API route.  Allows for dynamically replacing lengthy variable names with shortened versions within the MongoDB database.
+Creates MEAN Stack CRUD API web service from a SQL Server database (based on the standard express-generator).  This allows a model-first approach to creating MEAN Stack web services in that the modeleing can be done through tools such as SQL Server Diagram Tool.  All features of the global templates are supported (non-destructive deletes, audit trails, etc.).
 
 ### Status
 Basic CRUD functionality tested and complete.
@@ -11,60 +11,41 @@ Basic CRUD functionality tested and complete.
 ## Requirements
 
 ### General
-SQL Server and CodeSmith Generator v7.0 is needed for generation.  Earlier versions of Generator may also work.  NodeJS and the Node Package Manager ("npm") must be installed to setup the generated code base.
+SQL Server and CodeSmith Generator v7.0 is needed for generation.  Earlier versions of Generator may also work.  NodeJS, the Node Package Manager ("npm"), and NodeMon must be installed to setup the generated code base.
 
 ### Development
 Template designed to run in CodeSmith Generator, a Windows-only product.  Once generated the codebase should run in any environment that supports NodeJS.
 
 ### Production
-Generated code based runs in any environment supporting NodeJS.  ExpressJS is needed if the API routes are used.
+Generated code based runs in any environment supporting NodeJS.
 
 #### ExpressJS Setup
-**1.** Using NPM, install three packages: `dzutils`, `moment`, and `mongoose`;  
-**2.** Add two lines to the Express Generator `app.js` file:  
-<pre>
-var apiRouter = require('./routes/api');  
-app.use('/api', apiRouter);
-</pre>
-**3.** Change the event handlers to:  
-<pre>
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
-        res.send({
-            msg: err.message,
-            err: err
-        });
-    });
-}
+**1.** Install NodeJS following specific instructions for your operating system;  
+**2.** Although optional, it is recommended that you upgrade NPM once NodeJS is installed:
 
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.send({
-        msg: err.message,
-        err: {}
-    });
-});
-</pre>
-**4.** Add the Mongoose configuration to the Express Generator `www` file:  
-**This block assumes you have a configuration variable, called 'config,' with the necessary database settings.  Adjust appropriately for your environment:**
-<pre>
-/**
- * Mongoose
- */
-var mongoose = require('mongoose');
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, config.name + ' db error'));
-db.once('open', function callback() {
-    console.log(config.name + ' db opened');
-});
-mongoose.connect(config.db);
-</pre>
-**5.** Finally, run `npm install` to bring in the dependencies from Express Generator.  
+`npm install -g npm`
+
+**3.** Install NodeMon globally using the following command:
+
+`npm install -g nodemon`
+
+**4.** Using CodeSmith Generator v7.0, generate the template.  This will generate two folders:
+
+`%PROJECT NAME%`  
+`%PROJECT NAME%.Proxies`
+
+**5.** Change directory into the `%PROJECT NAME%` folder and install all required binaries using the following command: 
+
+`npm install`
+
+**6.** Initialize the web server using the following command.
+
+`npm start`
+
+Once running two sets of URLs will be available:
+
+`http://%FQDN%:%PORT%`  (shows the index placeholder page)  
+`http://%FQDN%:%PORT%/api/%OBJECT-NAME%`  (common RESTful paths used at this point)  
 
 ## Deviations
 - Only UID and char (String) data types are used for keys.  Fixed length char fields, from SQL Server, are converted to String keys and must be supplied during any create operation.  All other types (ie. uniqueidentifier, bigint, int, etc.) are converted to String fields and automatically populated with a random UID during create.
@@ -85,6 +66,9 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 
 ### v0.1.3
 - Basic CRUD functionality tested and complete.
+
+### v0.1.4
+- Complete ExpressJS web service built around routes and models.
 
 ---
 

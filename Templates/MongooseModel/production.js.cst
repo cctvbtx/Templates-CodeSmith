@@ -1,5 +1,5 @@
 ﻿<%-- 
-Name:   development.js.cst
+Name:   production.js.cst
 Author: Fred Lackey <fred.lackey@gmail.com>
 Desc:
 --%>
@@ -49,9 +49,9 @@ Desc:
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
 <%@ Import Namespace="CodeSmith.Engine" %>
 <%
-var url = (DevHostPort == 80)
-    ? DevHostName
-    : DevHostName + ":" + DevHostPort;
+var url = (ProdHostPort == 80)
+    ? ProdHostName
+    : ProdHostName + ":" + ProdHostPort;
 %>
 /*jslint node: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
@@ -60,9 +60,9 @@ var url = (DevHostPort == 80)
 
 module.exports = {
     name: '<%= ProjectName %>',
-    description: '<%= ProjectDescription %> (dev)',
-    db: 'mongo://<%= DevDbFQDN %>/<%= DevDbName %>',
-    port: <%= DevHostPort %>,
+    description: '<%= ProjectDescription %>',
+    db: 'mongo://<%= ProdDbFQDN %>/<%= ProdDbName %>',
+    port: <%= ProdHostPort %>,
     proxies: {
         <%= ProjectName %>: {
             url: 'http://<%= url %>/'
