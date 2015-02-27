@@ -30,6 +30,7 @@ Desc:
 
 <%-- Local Properties --%>
 <%@ Property Name="FileName" Type="System.String" Optional="True" %>
+<%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
 
 <%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
 

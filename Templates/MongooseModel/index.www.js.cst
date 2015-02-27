@@ -30,6 +30,7 @@ Desc:
 
 <%-- Local Properties --%>
 <%@ Property Name="FileName" Type="System.String" Optional="True" %>
+<%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
 
 <%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
 
@@ -47,12 +48,13 @@ Desc:
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
 
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
-var express = require('express');
-var router = express.Router();
+var config = require('../config'),
+    express = require('express'),
+    router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: config.description });
 });
 
 module.exports = router;

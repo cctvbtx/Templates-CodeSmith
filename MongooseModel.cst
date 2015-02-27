@@ -31,10 +31,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Property Name="ProdDbName" Type="System.String" Category="03. Prod Config" Optional="True" Default="" Description="FQDN of the production DB server." OnChanged="OnSetupChanged" %>
 
 <%-- 04. Options --%>
-<%@ Property Name="DirectRoutes" Type="System.Boolean" Category="04. Options" Default="True" Description="Routes directly manipulating the database (not using the data repository) will be generated." OnChanged="OnSetupChanged" %>
-<%@ Property Name="DirectRoutesPrefix" Type="System.String" Category="04. Options" Default="api" Description="URI prefix for direct web service routes" OnChanged="OnSetupChanged" %>
-<%@ Property Name="RepoRoutes" Type="System.Boolean" Category="04. Options" Default="True" Description="Routes calling upon the data repository will be generated." OnChanged="OnSetupChanged" %>
-<%@ Property Name="RepoRoutesPrefix" Type="System.String" Category="04. Options" Default="repo" Description="URI prefix for web service routes using the data repository" OnChanged="OnSetupChanged" %>
+<%@ Property Name="APIRoutePrefix" Type="System.String" Category="04. Options" Default="api" Description="URI prefix for direct web service routes" OnChanged="OnSetupChanged" %>
 
 <%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="Templates\Common" %>
 
@@ -82,15 +79,16 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
     // Controls setup of variables, directories, and calls subordinate templates.
     public override void Render(TextWriter writer)
     {
+        var buildDate = DateTime.Now;
         var buildPath = OutputVersioning 
-            ? Path.Combine(OutputDirectory, DateTime.Now.GetDateString("yyyyMMddhhmmss"), ProjectName) 
+            ? Path.Combine(OutputDirectory, buildDate.GetDateString("yyyyMMddhhmmss"), ProjectName) 
             : Path.Combine(OutputDirectory, ProjectName);
         
-        if ( !renderPerDatabaseTemplates(buildPath) ){ return; }
-        if ( !renderPerTableTemplates(buildPath) ){ return; }
+        if ( !renderPerDatabaseTemplates(buildPath, buildDate) ){ return; }
+        if ( !renderPerTableTemplates(buildPath, buildDate) ){ return; }
     }
     
-    private bool renderPerDatabaseTemplates(string buildPath)
+    private bool renderPerDatabaseTemplates(string buildPath, DateTime buildDate)
     {
         var strategy = new PreserveRegionsMergeStrategy("^[ \\t]*[ \\s]*\"?(?i:Custom)\"?", "JavaScript");
 
@@ -106,6 +104,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         DataIndex _DataIndex = this.Create<DataIndex>();
         this.CopyPropertiesTo(_DataIndex);
         _DataIndex.FileName = fileName;
+        _DataIndex.BuildDate = buildDate;
         _DataIndex.RenderToFile(file, true);
 
         outputDir = Path.Combine(buildPath, "config");
@@ -118,6 +117,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         Development _Development = this.Create<Development>();
         this.CopyPropertiesTo(_Development);
         _Development.FileName = fileName;
+        _Development.BuildDate = buildDate;
         _Development.RenderToFile(file, true);
 
         fileName = "index.js";
@@ -125,6 +125,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         ConfigIndex _ConfigIndex = this.Create<ConfigIndex>();
         this.CopyPropertiesTo(_ConfigIndex);
         _ConfigIndex.FileName = fileName;
+        _ConfigIndex.BuildDate = buildDate;
         _ConfigIndex.RenderToFile(file, true);
         
         fileName = "production.js";
@@ -132,6 +133,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         Production _Production = this.Create<Production>();
         this.CopyPropertiesTo(_Production);
         _Production.FileName = fileName;
+        _Production.BuildDate = buildDate;
         _Production.RenderToFile(file, true);
 
         outputDir = Path.Combine(buildPath, "routes");
@@ -144,6 +146,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         WwwIndex _WwwIndex = this.Create<WwwIndex>();
         this.CopyPropertiesTo(_WwwIndex);
         _WwwIndex.FileName = fileName;
+        _WwwIndex.BuildDate = buildDate;
         _WwwIndex.RenderToFile(file, true);
 
         outputDir = Path.Combine(buildPath, "routes", "api");
@@ -156,6 +159,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         RouteIndex _RouteIndex = this.Create<RouteIndex>();
         this.CopyPropertiesTo(_RouteIndex);
         _RouteIndex.FileName = fileName;
+        _RouteIndex.BuildDate = buildDate;
         _RouteIndex.RenderToFile(file, true);
 
         outputDir = buildPath;
@@ -168,6 +172,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         App _App = this.Create<App>();
         this.CopyPropertiesTo(_App);
         _App.FileName = fileName;
+        _App.BuildDate = buildDate;
         _App.RenderToFile(file, true);
         
         fileName = "package.json";
@@ -175,6 +180,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         Package _Package = this.Create<Package>();
         this.CopyPropertiesTo(_Package);
         _Package.FileName = fileName;
+        _Package.BuildDate = buildDate;
         _Package.RenderToFile(file, true);
 
         outputDir = Path.Combine(buildPath, "scripts");
@@ -187,6 +193,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         Www _Www = this.Create<Www>();
         this.CopyPropertiesTo(_Www);
         _Www.FileName = fileName;
+        _Www.BuildDate = buildDate;
         _Www.RenderToFile(file, true);
 
         outputDir = Path.Combine(buildPath, "views");
@@ -199,6 +206,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         ErrorJade _ErrorJade = this.Create<ErrorJade>();
         this.CopyPropertiesTo(_ErrorJade);
         _ErrorJade.FileName = fileName;
+        _ErrorJade.BuildDate = buildDate;
         _ErrorJade.RenderToFile(file, true);
         
         fileName = "layout.jade";
@@ -206,6 +214,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         LayoutJade _LayoutJade = this.Create<LayoutJade>();
         this.CopyPropertiesTo(_LayoutJade);
         _LayoutJade.FileName = fileName;
+        _LayoutJade.BuildDate = buildDate;
         _LayoutJade.RenderToFile(file, true);
         
         fileName = "index.jade";
@@ -213,12 +222,13 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         IndexJade _IndexJade = this.Create<IndexJade>();
         this.CopyPropertiesTo(_IndexJade);
         _IndexJade.FileName = fileName;
+        _IndexJade.BuildDate = buildDate;
         _IndexJade.RenderToFile(file, true);
         
         return true;
     }
 
-    private bool renderPerTableTemplates(string buildPath)
+    private bool renderPerTableTemplates(string buildPath, DateTime buildDate)
     {
         var outputDir = string.Empty;
         var file = default(OutputFile);
@@ -238,6 +248,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             Route _Route = this.Create<Route>();
             this.CopyPropertiesTo(_Route);
             _Route.FileName = fileName;
+            _Route.BuildDate = buildDate;
             _Route.CurrentTable = table;
             _Route.RenderToFile(file, true);
             
@@ -253,6 +264,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             Proxy _Proxy = this.Create<Proxy>();
             this.CopyPropertiesTo(_Proxy);
             _Proxy.FileName = fileName;
+            _Proxy.BuildDate = buildDate;
             _Proxy.CurrentTable = table;
             _Proxy.RenderToFile(file, true);
             
@@ -268,6 +280,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             Model _Model = this.Create<Model>();
             this.CopyPropertiesTo(_Model);
             _Model.FileName = fileName;
+            _Model.BuildDate = buildDate;
             _Model.CurrentTable = table;
             _Model.RenderToFile(file, true);
         }

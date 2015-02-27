@@ -31,6 +31,7 @@ Desc:
 <%-- Local Properties --%>
 <%@ Property Name="FileName" Type="System.String" Optional="True" %>
 <%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
+<%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
 
 <%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
 
@@ -81,7 +82,7 @@ var pkCount = 0;
 // ====================
 // GET BY INDEX - BEGIN
 // ====================
-if (CurrentTable.Indexes.Where(x => !x.IsPkIndex()).Count() < 1)
+if (CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).Where(x => !x.MemberColumns.All(y => y.IsAuditColumn())).Count() < 1)
 {
 %>
 
@@ -89,7 +90,7 @@ if (CurrentTable.Indexes.Where(x => !x.IsPkIndex()).Count() < 1)
 <%
 }
 
-foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPkIndex()).OrderBy(x => x.IsUnique).OrderBy(x => x.CreateUniqueName()))
+foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).Where(x => !x.MemberColumns.All(y => y.IsAuditColumn())).OrderBy(x => x.IsUnique).OrderBy(x => x.CreateUniqueName()))
 {
 %>
 

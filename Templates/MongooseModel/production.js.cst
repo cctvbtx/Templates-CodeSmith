@@ -30,6 +30,7 @@ Desc:
 
 <%-- Local Properties --%>
 <%@ Property Name="FileName" Type="System.String" Optional="True" %>
+<%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
 
 <%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
 
@@ -61,7 +62,7 @@ var url = (ProdHostPort == 80)
 module.exports = {
     name: '<%= ProjectName %>',
     description: '<%= ProjectDescription %>',
-    db: 'mongo://<%= ProdDbFQDN %>/<%= ProdDbName %>',
+    db: 'mongodb://<%= ProdDbFQDN %>/<%= ProdDbName %>',
     port: <%= ProdHostPort %>,
     proxies: {
         <%= ProjectName %>: {

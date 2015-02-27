@@ -28,9 +28,13 @@ Desc:
 <%@ Property Name="ProdDbFQDN" Type="System.String" Optional="True" %>
 <%@ Property Name="ProdDbName" Type="System.String" Optional="True" %>
 
+<%-- 04. Options --%>
+<%@ Property Name="APIRoutePrefix" Type="System.String" Optional="True" %>
+
 <%-- Local Properties --%>
 <%@ Property Name="FileName" Type="System.String" Optional="True" %>
 <%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
+<%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
 
 <%@ Map Name="DefaultsDelFlag" Src="Maps\DefaultsDelFlag.csmap" %>
 <%@ Map Name="DtoFieldNames" Src="Maps\DtoFieldNames.csmap" %>
@@ -80,7 +84,7 @@ var config = require('<%= (CurrentTable.HasDefaultOnwer() ? "" : "../") %>../../
     uids = require('dzutils').uuids;
     
 var BASE_URL = config.proxies.<%= ProjectName %>.url,
-    URL_PATH = 'api/<%= CurrentTable.Name.ToHypehatedLowercase() %>';
+    URL_PATH = '<%= ProjectName %>/<%= CurrentTable.Name.ToHypehatedLowercase() %>';
 <%
 
 
