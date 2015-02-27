@@ -107,9 +107,9 @@ Generates either a JSON or JavaScript representation of the database.  Useful to
 #### MEAN Web Service
 Simple data web service.  Created as an academic exercise while learning MEAN Stack development.  Primary goal when creating was to leverage the SQL Diagram tool to visually / quickly prototype Mongoose and Express resources.  Hopefully this will let fellow Microsoft and .NET developers kick the tires on the MEAN Stack more easily.
 
-#### Mongoose Model v0.1.3
-Provides data logic methods and API access routes to simplify creating data access for NodeJS applications.  Design is done through SQL Server Diagram tool.  Generates Mongoose schemas for MongoDB and direct routes to each data call from an ExpressJS API route.  Allows for dynamically replacing lengthy variable names with shortened versions within the MongoDB database.  Expected use is within an ExpressJS application from `express-generator`.
+#### Mongoose Model v0.2.0
+Creates MEAN Stack CRUD API web service, and proxy libraries for connecting to that web service, from a SQL Server database (based on the standard express-generator).  This allows a model-first approach to creating MEAN Stack web services in that the modeling can be done through tools such as SQL Server Diagram Tool.  All features of the global templates are supported (non-destructive deletes, audit trails, etc.).
 
 ---
 
-Last updated: 2/25/2015 12:55:20 PM  
+Last updated: 2/27/2015 6:06:19 PM 
