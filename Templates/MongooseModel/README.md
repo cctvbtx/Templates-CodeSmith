@@ -1,9 +1,9 @@
-# Mongoose Model Template v0.1.4
+# Mongoose Model Template v0.2.0
 
 ## Summary
 
 ### Background
-Creates MEAN Stack CRUD API web service from a SQL Server database (based on the standard express-generator).  This allows a model-first approach to creating MEAN Stack web services in that the modeleing can be done through tools such as SQL Server Diagram Tool.  All features of the global templates are supported (non-destructive deletes, audit trails, etc.).
+Creates MEAN Stack CRUD API web service, and proxy libraries for connecting to that web service, from a SQL Server database (based on the standard express-generator).  This allows a model-first approach to creating MEAN Stack web services in that the modeling can be done through tools such as SQL Server Diagram Tool.  All features of the global templates are supported (non-destructive deletes, audit trails, etc.).
 
 ### Status
 Basic CRUD functionality tested and complete.
@@ -67,9 +67,9 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 ### v0.1.3
 - Basic CRUD functionality tested and complete.
 
-### v0.1.4
-- Complete ExpressJS web service built around routes and models.
+### v0.2.0
+- Complete ExpressJS web service built around routes and models.  Proxy files added for connecting to web service from other ExpressJS applications.
 
 ---
 
-Last updated: 2/25/2015 12:53:41 PM 
+Last updated: 2/27/2015 6:05:56 PM 
