@@ -67,6 +67,11 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Register Name="Www" Template="Templates/MongooseModel/www.js.cst" %>
 
 <%-- ###########################################################################
+     PER OWNER TEMPLATES
+     ########################################################################### --%>
+<%@ Register Name="ProxyIndex" Template="Templates/MongooseModel/index.proxy.js.cst" %>
+
+<%-- ###########################################################################
      PER TABLE TEMPLATES
      ########################################################################### --%>
 <%@ Register Name="Model" Template="Templates/MongooseModel/model.js.cst" %>
@@ -85,6 +90,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             : Path.Combine(OutputDirectory, ProjectName);
         
         if ( !renderPerDatabaseTemplates(buildPath, buildDate) ){ return; }
+        if ( !renderPerOwnerTemplates(buildPath, buildDate) ){ return; }
         if ( !renderPerTableTemplates(buildPath, buildDate) ){ return; }
     }
     
@@ -227,7 +233,39 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         
         return true;
     }
+    private bool renderPerOwnerTemplates(string buildPath, DateTime buildDate)
+    {
+        var outputDir = string.Empty;
+        var file = default(OutputFile);
+        var fileName = string.Empty;
 
+        var owners = SourceDatabase.GetOwners(true).ToList();
+        if (owners.FindIndex(x => x.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)) < 0)
+        {
+            owners.Add(SourceDatabase.GetDefaultOwner());
+        }
+        
+        foreach ( var owner in owners )
+        {
+            outputDir = owner.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)
+                ? Path.Combine(buildPath + ".Proxies")
+                : Path.Combine(buildPath + ".Proxies", owner.ToHypehatedLowercase());
+            
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = "index.js";
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            ProxyIndex _ProxyIndex = this.Create<ProxyIndex>();
+            this.CopyPropertiesTo(_ProxyIndex);
+            _ProxyIndex.FileName = fileName;
+            _ProxyIndex.BuildDate = buildDate;
+            _ProxyIndex.CurrentOwner = owner;
+            _ProxyIndex.RenderToFile(file, true);
+        }
+
+        return true;
+    }
     private bool renderPerTableTemplates(string buildPath, DateTime buildDate)
     {
         var outputDir = string.Empty;

@@ -84,6 +84,10 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 ### v0.2.0
 - Complete ExpressJS web service built around routes and models.  Proxy files added for connecting to web service from other ExpressJS applications.
 
+### v0.2.1
+- Added index for proxies to allow dot-notation navigation from root to individual proxy methods.
+
 ---
 
-Last updated: 2/27/2015 6:24:33 PM  
+Last updated: 3/3/2015 2:21:04 PM 
+
