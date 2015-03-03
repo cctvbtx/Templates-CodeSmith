@@ -77,14 +77,16 @@ var operations = new List<string>();
 // SCHEMA DEFINITION & INSTANCE VARIABLES - BEGIN
 // ==============================================
 %>
-var config = require('<%= (CurrentTable.HasDefaultOnwer() ? "" : "../") %>../../config'),
+var CONFIG_PATH = '<%= (CurrentTable.HasDefaultOnwer() ? "" : "../") %>../../config';
+
+var config = require(CONFIG_PATH),
     dates = require('dzutils').dates,
     request = require('request-json'),
     strings = require('dzutils').strings,
     uids = require('dzutils').uuids;
     
 var BASE_URL = config.proxies.<%= ProjectName %>.url,
-    URL_PATH = '<%= ProjectName %>/<%= CurrentTable.Name.ToHypehatedLowercase() %>';
+    URL_PATH = '<%= APIRoutePrefix %>/<%= CurrentTable.Name.ToHypehatedLowercase() %>';
 <%
 
 

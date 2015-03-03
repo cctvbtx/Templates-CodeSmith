@@ -73,7 +73,7 @@ foreach (var table in tables)
 <%
 }
 
-if (isDefaultOwner && SourceDatabase.GetOwners().Length > 1)
+if (isDefaultOwner)
 {
     if (tableCount > 0)
     {
@@ -81,13 +81,13 @@ if (isDefaultOwner && SourceDatabase.GetOwners().Length > 1)
 
 <%
     }
-    
-    var owners = SourceDatabase.GetOwners().Where(x => !x.Equals(CurrentOwner, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    var owners = SourceDatabase.GetOwners().Where(x => !x.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)).ToList();
     foreach (var owner in owners)
     {
         var prefix = owner == owners.First() ? "var " : "    ";
         var suffix = owner == owners.Last() ? ";" : ",";
-    
+
         var name = owner.ToCamelCase(); 
         names.Add(name);
 %>
