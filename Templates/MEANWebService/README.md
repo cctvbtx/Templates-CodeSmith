@@ -67,6 +67,7 @@ Once running two sets of URLs will be available:
 ## Future Goals
 Need to improve with feedback from experienced Mongoose / MongoDB developers.  Should also add methods for paging and other advanced features.
 - Enhance Update methods to check for collisions
+- Replace composite PK with unique constraint (currently skipping additional PK columns)
 
 ## Updates
 ### v0.1.1
@@ -89,5 +90,5 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 
 ---
 
-Last updated: 3/4/2015 4:13:22 PM 
+Last updated: 3/4/2015 4:22:30 PM 
 
