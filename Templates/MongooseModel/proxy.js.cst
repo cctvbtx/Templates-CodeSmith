@@ -121,8 +121,8 @@ foreach (var column in CurrentTable.Columns)
     else { text = text.Replace("{3}", column.Name.ToCamelCase() + " (" + DtoFieldNames[column.Name.ToCamelCase()] + ")"); }
 
     text = text.Replace("{4}", ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType]) + (column.AllowDBNull ? " or null value" : string.Empty));
-    
-    switch ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType])
+    var typeName = (column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType];
+    switch (typeName)
     {
         case "String":
             if (column.IsPrimaryKeyMember || column.IsForeignKeyMember || column.NativeType.Equals("uniqueidentifier"))
@@ -144,6 +144,9 @@ foreach (var column in CurrentTable.Columns)
             break;
         case "Date":
         case "Number":
+            text = text.Replace("{1}", "!" + typeName.ToLower() + "s.is" + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
+            text = text.Replace("{5}", string.Empty);
+            break;
         case "Boolean":
             text = text.Replace("{1}", "!strings.is" + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
             text = text.Replace("{5}", string.Empty);
@@ -333,7 +336,7 @@ operations.Add("getById");
 %>
 
 var getAll = function (callback) {
-    var client = request.newClient(BASE_URL);
+    var client = request.createClient(BASE_URL);
     client.get(URL_PATH, function (err, res, body) {
         if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
         if (err) { return callback(err); }
@@ -344,7 +347,7 @@ var getAll = function (callback) {
 
 var getById = function (id, callback) {
     if (!<%= CurrentTable.PrimaryKey.MemberColumns[0].IsFixedLength() ? "strings.isValidString" : "uids.isIdentifier" %>(id)) { return callback(new Error('Invalid id')); }
-    var client = request.newClient(BASE_URL),
+    var client = request.createClient(BASE_URL),
         url = URL_PATH + '/' + id;
     client.get(url, function (err, res, body) {
         if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
@@ -408,7 +411,7 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = f
     };
     validateItem(item, function (err) {
         if (err) { return callback(err); }
-        var client = request.newClient(BASE_URL),
+        var client = request.createClient(BASE_URL),
             url = URL_PATH + '/<%= opName.ToHypehatedLowercase() %>';
         client.post(url, toDto(item), function (err, res, body) {
             if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
@@ -497,7 +500,7 @@ foreach (var column in columnsForCreate)
     };
     validateItem(item, function (err) {
         if (err) { return callback(err); }
-        var client = request.newClient(BASE_URL);
+        var client = request.createClient(BASE_URL);
         client.post(URL_PATH, toDto(item), function (err, res, body) {
             if (err) { return callback(err); }
             var response = {
@@ -541,7 +544,7 @@ var modifyMany = function (query, update<%= CurrentTable.HasVersionUserColumn() 
             if (err) { return callback(new Error('Invalid query: ' + err.message)); }
             validateItem(update, function (err) {
                 if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var client = request.newClient(BASE_URL),
+                var client = request.createClient(BASE_URL),
                     dto = toDto(data);
                 dto.query = toDto(query);
                 dto.update = toDto(update);
@@ -564,7 +567,7 @@ var modifyOne = function (query, update<%= CurrentTable.HasVersionUserColumn() ?
             if (err) { return callback(new Error('Invalid query: ' + err.message)); }
             validateItem(update, function (err) {
                 if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var client = request.newClient(BASE_URL),
+                var client = request.createClient(BASE_URL),
                     dto = toDto(data);
                 dto.query = toDto(query);
                 dto.update = toDto(update);
@@ -621,7 +624,7 @@ var deleteMany = function (query<%= CurrentTable.HasVersionUserColumn() ? (", " 
             validateItem(update, function (err) {
                 if (err) { return callback(new Error('Invalid update: ' + err.message)); }
                 var dto = toDto(data),
-                    client = request.newClient(BASE_URL);
+                    client = request.createClient(BASE_URL);
                 dto.query = toDto(query);
                 dto.update = toDto(update);
                 client.delete(URL_PATH + '/many', dto, function (err, res, body) {
@@ -642,7 +645,7 @@ var deleteOne = function (query<%= CurrentTable.HasVersionUserColumn() ? (", " +
             if (err) { return callback(new Error('Invalid query: ' + err.message)); }
             validateItem(update, function (err) {
                 if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var client = request.newClient(BASE_URL),
+                var client = request.createClient(BASE_URL),
                     dto = toDto(data);
                 dto.query = toDto(query);
                 dto.update = toDto(update);

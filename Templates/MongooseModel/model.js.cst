@@ -145,7 +145,7 @@ foreach (var column in CurrentTable.Columns)
         default:
             break;
     }
-    line += ", required: " + column.AllowDBNull.ToString().ToLower();
+    line += ", required: " + (!column.AllowDBNull).ToString().ToLower();
     line += column.IsForeignKeyMember ? ", ref: '" + column.GetPrimaryTable().Name.ToPascalCase() + "'" : string.Empty;
     line += " }" + eol;
     
@@ -232,7 +232,8 @@ foreach (var column in CurrentTable.Columns)
 
     text = text.Replace("{4}", ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType]) + (column.AllowDBNull ? " or null value" : string.Empty));
     
-    switch ((column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType])
+    var typeName = (column.IsPrimaryKeyMember || column.IsForeignKeyMember) ? SqlToMongooseKey[column.NativeType] : SqlToMongoose[column.NativeType];
+    switch (typeName)
     {
         case "String":
             if (column.IsPrimaryKeyMember || column.IsForeignKeyMember || column.NativeType.Equals("uniqueidentifier"))
@@ -255,7 +256,7 @@ foreach (var column in CurrentTable.Columns)
         case "Date":
         case "Number":
         case "Boolean":
-            text = text.Replace("{1}", "!strings.is" + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
+            text = text.Replace("{1}", "!" + typeName.ToLower() + "s.is" + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
             text = text.Replace("{5}", string.Empty);
             break;
         default:
