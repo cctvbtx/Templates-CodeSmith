@@ -1,4 +1,4 @@
-# Mongoose Model Template v0.2.0
+# MEAN Stack Web Service Template v0.2.1
 
 ## Summary
 
@@ -89,5 +89,5 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 
 ---
 
-Last updated: 3/3/2015 2:21:04 PM 
+Last updated: 3/4/2015 4:13:22 PM 
 

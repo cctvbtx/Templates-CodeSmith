@@ -51,32 +51,32 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%-- ###########################################################################
      PER DATABASE TEMPLATES
      ########################################################################### --%>
-<%@ Register Name="App" Template="Templates/MongooseModel/app.js.cst" %>
-<%@ Register Name="ErrorJade" Template="Templates/MongooseModel/error.jade.cst" %>
-<%@ Register Name="IndexJade" Template="Templates/MongooseModel/index.jade.cst" %>
-<%@ Register Name="LayoutJade" Template="Templates/MongooseModel/layout.jade.cst" %>
-<%@ Register Name="WwwIndex" Template="Templates/MongooseModel/index.www.js.cst" %>
+<%@ Register Name="App" Template="Templates/MEANWebService/app.js.cst" %>
+<%@ Register Name="ErrorJade" Template="Templates/MEANWebService/error.jade.cst" %>
+<%@ Register Name="IndexJade" Template="Templates/MEANWebService/index.jade.cst" %>
+<%@ Register Name="LayoutJade" Template="Templates/MEANWebService/layout.jade.cst" %>
+<%@ Register Name="WwwIndex" Template="Templates/MEANWebService/index.www.js.cst" %>
 
-<%@ Register Name="Production" Template="Templates/MongooseModel/production.js.cst" %>
-<%@ Register Name="Development" Template="Templates/MongooseModel/development.js.cst" %>
+<%@ Register Name="Production" Template="Templates/MEANWebService/production.js.cst" %>
+<%@ Register Name="Development" Template="Templates/MEANWebService/development.js.cst" %>
 
-<%@ Register Name="ConfigIndex" Template="Templates/MongooseModel/index.config.js.cst" %>
-<%@ Register Name="DataIndex" Template="Templates/MongooseModel/index.data.js.cst" %>
-<%@ Register Name="RouteIndex" Template="Templates/MongooseModel/index.route.js.cst" %>
-<%@ Register Name="Package" Template="Templates/MongooseModel/package.json.cst" %>
-<%@ Register Name="Www" Template="Templates/MongooseModel/www.js.cst" %>
+<%@ Register Name="ConfigIndex" Template="Templates/MEANWebService/index.config.js.cst" %>
+<%@ Register Name="DataIndex" Template="Templates/MEANWebService/index.data.js.cst" %>
+<%@ Register Name="RouteIndex" Template="Templates/MEANWebService/index.route.js.cst" %>
+<%@ Register Name="Package" Template="Templates/MEANWebService/package.json.cst" %>
+<%@ Register Name="Www" Template="Templates/MEANWebService/www.js.cst" %>
 
 <%-- ###########################################################################
      PER OWNER TEMPLATES
      ########################################################################### --%>
-<%@ Register Name="ProxyIndex" Template="Templates/MongooseModel/index.proxy.js.cst" %>
+<%@ Register Name="ProxyIndex" Template="Templates/MEANWebService/index.proxy.js.cst" %>
 
 <%-- ###########################################################################
      PER TABLE TEMPLATES
      ########################################################################### --%>
-<%@ Register Name="Model" Template="Templates/MongooseModel/model.js.cst" %>
-<%@ Register Name="Proxy" Template="Templates/MongooseModel/proxy.js.cst" %>
-<%@ Register Name="Route" Template="Templates/MongooseModel/route.js.cst" %>
+<%@ Register Name="Model" Template="Templates/MEANWebService/model.js.cst" %>
+<%@ Register Name="Proxy" Template="Templates/MEANWebService/proxy.js.cst" %>
+<%@ Register Name="Route" Template="Templates/MEANWebService/route.js.cst" %>
 
 <script runat="template">
 
