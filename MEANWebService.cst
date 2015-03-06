@@ -124,7 +124,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         this.CopyPropertiesTo(_Development);
         _Development.FileName = fileName;
         _Development.BuildDate = buildDate;
-        _Development.RenderToFile(file, true);
+        _Development.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
 
         fileName = "index.js";
         file = new OutputFile(Path.Combine(outputDir, fileName));
