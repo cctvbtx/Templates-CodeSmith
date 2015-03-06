@@ -34,6 +34,7 @@ Desc:
 <%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
 
 <%@ Map Name="DefaultsDelFlag" Src="Maps\DefaultsDelFlag.csmap" %>
+<%@ Map Name="DtoFieldNames" Src="Maps\DtoFieldNames.csmap" %>
 <%@ Map Name="SchemaFieldNames" Src="Maps\SchemaFieldNames.csmap" %>
 <%@ Map Name="SqlToMongoose" Src="Maps\SqlToMongoose.csmap" %>
 <%@ Map Name="SqlToMongooseKey" Src="Maps\SqlToMongooseKey.csmap" %>
@@ -80,7 +81,8 @@ var dates = require('dzutils').dates,
     mongoose = require('mongoose'),
     numbers = require('dzutils').numbers,
     strings = require('dzutils').strings,
-    uids = require('dzutils').uuids;
+    uids = require('dzutils').uuids,
+    util = require('util');
 
 var <%= CurrentTable.Name.ToCamelCase() %>Schema = new mongoose.Schema({
 <% 
@@ -301,7 +303,7 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 %>
-    if (typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> !== 'undefined') { dto.<%= column.Name.ToCamelCase() %> = item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %>; }
+    if (typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> !== 'undefined') { dto.<%= DtoFieldNames[column.Name.ToCamelCase()] %> = item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %>; }
 <%
 }
 %>    
@@ -331,7 +333,7 @@ foreach (var column in CurrentTable.Columns)
     
     var eol = (column == CurrentTable.Columns.Last()) ? string.Empty : ",";
 %>
-        <%= column.Name.ToCamelCase() %>: ((typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> !== 'undefined') ? item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> : null)<%= eol %>
+        <%= DtoFieldNames[column.Name.ToCamelCase()] %>: ((typeof item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> !== 'undefined') ? item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> : null)<%= eol %>
 <%
 };
 %>    
@@ -378,7 +380,7 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 %>
-    if (typeof dto.<%= column.Name.ToCamelCase() %> !== 'undefined') { item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> = dto.<%= column.Name.ToCamelCase() %>; }
+    if (typeof dto.<%= DtoFieldNames[column.Name.ToCamelCase()] %> !== 'undefined') { item.<%= SchemaFieldNames[column.Name.ToCamelCase()] %> = dto.<%= DtoFieldNames[column.Name.ToCamelCase()] %>; }
 <%
 }
 %>    
@@ -408,7 +410,7 @@ foreach (var column in CurrentTable.Columns)
     
     var eol = (column == CurrentTable.Columns.Last()) ? string.Empty : ",";
 %>
-        <%= SchemaFieldNames[column.Name.ToCamelCase()] %>: ((typeof dto.<%= column.Name.ToCamelCase() %> !== 'undefined') ? dto.<%= column.Name.ToCamelCase() %> : null)<%= eol %>
+        <%= SchemaFieldNames[column.Name.ToCamelCase()] %>: ((typeof dto.<%= DtoFieldNames[column.Name.ToCamelCase()] %> !== 'undefined') ? dto.<%= DtoFieldNames[column.Name.ToCamelCase()] %> : null)<%= eol %>
 <%
 }
 %>    
@@ -465,6 +467,17 @@ var getById = function (id, callback) {
     });
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getById = getById;
+
+var getByIds = function (ids, callback) {
+    if (!util.isArray(ids)){ return callback(new Error('ids is not an array'));  }
+    var query = { _id: { $in: ids }<% if (CurrentTable.HasDeleteFlag()){ %>, <%= SchemaFieldNames[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %>: <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %><% } %> };
+    mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').find(query, function (err, items) {
+        if (err) { return callback(err); }
+        if (items) { return callback(null, toDtos(items)); }
+        return callback();
+    });
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getByIds = getByIds;
 <%
 // =================
 // GET BY ID - END
@@ -510,7 +523,7 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = f
         if (err) { return callback(err); }
         mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').find<%= (index.IsUnique ? "One" : "") %>(query, function (err, <%= (index.IsUnique ? "item" : "items") %>) {
             if (err) { return callback(err); }
-            if (item) { return callback(null, <%= (index.IsUnique ? "toDto" : "toDtos") %>(<%= (index.IsUnique ? "item" : "items") %>)); }
+            if (<%= (index.IsUnique ? "item" : "items") %>) { return callback(null, <%= (index.IsUnique ? "toDto" : "toDtos") %>(<%= (index.IsUnique ? "item" : "items") %>)); }
             return callback();
         });
     });
@@ -558,7 +571,7 @@ foreach (var column in columnsForCreate)
 
     var line = SchemaFieldNames[column.Name.ToCamelCase()] + ": ";
     line += column.IsVersionDateColumn()
-        ? "moment().utc().toDate()"
+        ? "new Date()"
         : column.IsDeleteFlag()
             ? DefaultsDelFlag[column.NativeType]
             : column.Name.ToCamelCase();

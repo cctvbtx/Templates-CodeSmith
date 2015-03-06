@@ -33,6 +33,8 @@ Desc:
 <%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
 <%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
 
+<%@ Map Name="DtoFieldNames" Src="Maps\DtoFieldNames.csmap" %>
+
 <%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
 
 <%@ Assembly Name="SchemaExplorer" %>
@@ -65,7 +67,7 @@ var pkCount = 0;
     var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
     <%= CurrentTable.Name.ToCamelCase() %>Model.getAll(function (err, items) {
         if (err) { throw err; }
-        if (!items || items.length < 1) { return res.status(404).send({}); }
+        // if (!items || items.length < 1) { return res.status(404).send({}); }
         return res.send({ items: items });
     });
 });
@@ -74,8 +76,17 @@ var pkCount = 0;
     var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
     <%= CurrentTable.Name.ToCamelCase() %>Model.getById(req.params.id, function (err, item) {
         if (err) { throw err; }
-        if (!item) { return res.status(404).send({}); }
+        // if (!item) { return res.status(404).send({}); }
         return res.send({ item: item });
+    });
+});
+
+<%= CurrentTable.Name.ToCamelCase() %>Router.post('/get-by-ids', function (req, res) {
+    var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.getByIds(req.body.ids, function (err, items) {
+        if (err) { throw err; }
+        // if (!items || items.length < 1) { return res.status(404).send({}); }
+        return res.send({ items: items });
     });
 });
 <%
@@ -100,14 +111,14 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).Where(x =>
     {
         var prefix = (column == index.MemberColumns.First()) ? "var " : "    ";
 %>
-    <%= prefix %><%= column.Name.ToCamelCase() %> = req.body.<%= column.Name.ToCamelCase() %>,
+    <%= prefix %><%= column.Name.ToCamelCase() %> = req.body.<%= DtoFieldNames[column.Name.ToCamelCase()] %>,
 <%
     }
 %>
         <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
     <%= CurrentTable.Name.ToCamelCase() %>Model.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>(<%= index.ToParamsArray() %>, function (err, <%= index.IsUnique ? "item" : "items" %>) {
         if (err) { throw err; }
-        if (!item<%= index.IsUnique ? "" : "s || items.length < 1" %>) { return res.status(404).send({}); }
+        // if (!item<%= index.IsUnique ? "" : "s || items.length < 1" %>) { return res.status(404).send({}); }
         return res.send({ <%= index.IsUnique ? "item: item" : "items: items" %> });
     });
 });
@@ -130,10 +141,10 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).Where(x =>
 // CREATE - BEGIN
 // ==============
 
-var paramArrayForCreate = CurrentTable.Columns.Where(column => !column.IsVersionDateColumn() && !column.IsDeleteFlag())
-                                              .Where(column => !column.IsPrimaryKeyMember || column.IsFixedLength()).ToList().ToColumnSchemaCollection().ToParamsArray();
+var columnsForCreate = CurrentTable.Columns.Where(column => !column.IsVersionDateColumn() && !column.IsDeleteFlag())
+                                              .Where(column => !column.IsPrimaryKeyMember || column.IsFixedLength()).ToList().ToColumnSchemaCollection();
 
-var columnsForCreate = CurrentTable.Columns.Where(column => !column.IsPrimaryKeyMember || column.IsFixedLength()).ToList().ToColumnSchemaCollection();
+var paramArrayForCreate = columnsForCreate.ToParamsArray();
 
 pkCount = 0;
 %>
@@ -147,7 +158,7 @@ foreach (var column in columnsForCreate)
     
     var prefix = (column == columnsForCreate.First() ? "var " : "    ");
 %>
-    <%= prefix %><%= column.Name.ToCamelCase() %> = req.body.<%= column.Name.ToCamelCase() %>,
+    <%= prefix %><%= column.Name.ToCamelCase() %> = req.body.<%= DtoFieldNames[column.Name.ToCamelCase()] %>,
 <%
 }
 %>

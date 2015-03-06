@@ -96,7 +96,7 @@ app.use(function (req, res, next) {
 if (app.get('env') === 'development') {
     app.use(function(err, req, res, next) {
         res.status(err.status || 500);
-        if (req.get('Content-Type') === 'application/json'){
+        if (req.url.indexOf('/<%= APIRoutePrefix %>/') == 0) {
             res.send({
                 msg: err.message,
                 err: err
@@ -114,7 +114,7 @@ if (app.get('env') === 'development') {
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    if (req.get('Content-Type') === 'application/json'){
+    if (req.url.indexOf('/<%= APIRoutePrefix %>/') == 0) {
         res.send({
             msg: err.message,
             err: {}
