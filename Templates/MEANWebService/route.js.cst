@@ -184,6 +184,55 @@ foreach (var column in columnsForCreate)
 
 
 
+// =============
+// COUNT - BEGIN
+// =============
+%>
+
+<%= CurrentTable.Name.ToCamelCase() %>Router.post('/count', function (req, res) {
+    if (!req.body.query) { return res.status(400).send({ msg: 'Query not supplied' }); }
+    var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.getCountByQuery(req.body.query, function (err, count) {
+        if (err) { throw err; }
+        return res.send({ count: count });
+    });
+});
+
+<%= CurrentTable.Name.ToCamelCase() %>Router.post('/count-all', function (req, res) {
+<%
+    if (CurrentTable.HasDeleteFlag())
+    {
+%>
+    var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>(),
+        includeDeleted = (req.body.includeDeleted || req.body.del || null);
+<%
+    }
+    else
+    {
+%>
+    var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+<%
+    }
+%>
+    <%= CurrentTable.Name.ToCamelCase() %>Model.getCount(<%= CurrentTable.HasDeleteFlag() ? "includeDeleted, " : "" %>function (err, count) {
+        if (err) { throw err; }
+        return res.send({ count: count });
+    });
+});
+<%
+// =============
+// COUNT - BEGIN
+// =============
+
+
+
+
+
+
+
+
+
+
 // ==============
 // MODIFY - BEGIN
 // ==============
@@ -269,7 +318,6 @@ else
 // ==============
 // MODIFY - END
 // ==============
-
 
 
 

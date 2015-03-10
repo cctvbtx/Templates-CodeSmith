@@ -655,6 +655,47 @@ for (int i = indent; i > 0; i--)
 
 
 
+// =============
+// COUNT - BEGIN
+// =============
+%>
+
+var getCount = function (<%= (CurrentTable.HasDeleteFlag() ? "includeDeleted, " : "") %>callback) {
+    var query = {};
+<%
+    if (CurrentTable.HasDeleteFlag())
+    {
+%>
+    if (includeDeleted !== true) { query.<%= SchemaFieldNames[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %> = <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %>; }
+<%
+    }
+%>
+    return mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').count(query, callback);
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getCount = getCount;
+
+var getCountByQuery = function (queryDto, callback) {
+    var query = toItem(queryDto);
+    validateItem(query, function (err) {
+        if (err) { return callback(new Error('Invalid query: ' + err.message)); }
+        mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').count(query, callback);
+    });
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getCountByQuery = getCountByQuery;
+<%
+// =============
+// COUNT - END
+// =============
+
+
+
+
+
+
+
+
+
+
 // ==============
 // MODIFY - BEGIN
 // ==============

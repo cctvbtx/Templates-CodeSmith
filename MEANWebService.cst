@@ -119,12 +119,15 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
         
         fileName = "development.js";
-        file = new OutputFile(Path.Combine(outputDir, fileName));
-        Development _Development = this.Create<Development>();
-        this.CopyPropertiesTo(_Development);
-        _Development.FileName = fileName;
-        _Development.BuildDate = buildDate;
-        _Development.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
+        if (!System.IO.File.Exists(Path.Combine(outputDir, fileName)))
+        {
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            Development _Development = this.Create<Development>();
+            this.CopyPropertiesTo(_Development);
+            _Development.FileName = fileName;
+            _Development.BuildDate = buildDate;
+            _Development.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
+        }
 
         fileName = "index.js";
         file = new OutputFile(Path.Combine(outputDir, fileName));
