@@ -1,4 +1,4 @@
-# MEAN Stack Web Service Template v0.2.1
+# MEAN Stack Web Service Template v0.3.0
 
 ## Summary
 
@@ -64,10 +64,11 @@ Once running two sets of URLs will be available:
 ## Deviations
 - Only UID and char (String) data types are used for keys.  Fixed length char fields, from SQL Server, are converted to String keys and must be supplied during any create operation.  All other types (ie. uniqueidentifier, bigint, int, etc.) are converted to String fields and automatically populated with a random UID during create.
 
-## Future Goals
-Need to improve with feedback from experienced Mongoose / MongoDB developers.  Should also add methods for paging and other advanced features.
-- Enhance Update methods to check for collisions
-- Replace composite PK with unique constraint (currently skipping additional PK columns)
+## Future Plans  
+- Need to improve with feedback from experienced Mongoose / MongoDB developers.  
+- Add methods for paging and other advanced features.  
+- Enhance Update methods to check for collisions  
+- Replace composite PK with unique constraint (currently skipping additional PK columns)  
 
 ## Updates
 ### v0.1.1
@@ -87,6 +88,9 @@ Need to improve with feedback from experienced Mongoose / MongoDB developers.  S
 
 ### v0.2.1
 - Added index for proxies to allow dot-notation navigation from root to individual proxy methods.
+
+### v0.3.0
+- Added seeding methods and configuration files.  Added `count` operations for model, routes, and proxy.
 
 ---
 

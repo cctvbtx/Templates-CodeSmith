@@ -1,5 +1,5 @@
 ﻿<%-- 
-Name:   www.js.cst
+Name:   index.config.js.cst
 Author: Fred Lackey <fred.lackey@gmail.com>
 Desc:
 --%>
@@ -38,6 +38,7 @@ Desc:
 <%@ Assembly Name="CodeSmith.BaseTemplates" %>
 <%@ Assembly Name="CodeSmith.Core" %>
 <%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.Engine" %>
 
 <%@ Import Namespace="SchemaExplorer" %>
 <%@ Import Namespace="System.IO" %>
@@ -45,118 +46,50 @@ Desc:
 <%@ Import Namespace="System.Collections.Generic" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
-
-#!/usr/bin/env nodemon
-
+<%@ Import Namespace="CodeSmith.Engine" %>
+<%
+var indentWidth = 4;
+var count = 0;
+var pad = string.Empty;
+%>
+/*jslint node: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
 
 'use strict';
 
-/**
- * Module dependencies.
- */
+var env = process.env.NODE_ENV || 'development';
+var data = require('./' + env);
 
-var config = require('../config'),
-    app = require('../app'),
-    debug = require('debug')('<%= ProjectName %>:server'),
-    mongoose = require('mongoose'),
-    http = require('http');
-
-/**
- *  Mongoose & MongoDB Configuration
- */
-
-var db = mongoose.connection;
-
-db.on('error', console.error.bind(console, config.name + ' db error'));
-db.once('open', function callback() {
-    console.log(config.name + ' db opened');
-    var seedData = require('../models-seed');
-    seedData.doSeed(function () {
-        console.log(config.name + ' db seeded');
-    });
-});
-
-mongoose.connect(config.db);
-
-/**
- * Get port from environment and store in Express.
- */
-
-var port = normalizePort(process.env.PORT || config.port);
-app.set('port', port);
-
-/**
- * Create HTTP server.
- */
-
-var server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
-  return false;
+var doSeed = function (callback) {
+<%
+var tables = SourceDatabase.Tables.OrderBy(x => x.HasDefaultOnwer()).ThenBy(x => x.Name).ToList().ToTableSchemaCollection();
+foreach (var table in tables)
+{
+    count++;
+    pad = string.Empty.PadLeft(indentWidth * count, ' ');
+%>
+<%= pad %>data.<%=  table.HasDefaultOnwer() ? "" : table.Owner.ToCamelCase() + "." %><%= table.Name.ToPlural().ToCamelCase() %>.doSeed(function (err) {
+<%= pad %>    if (err) { throw err; }
+<%
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
+%>
+<%= pad %>    return callback();
+<%
 
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
+foreach (var table in tables)
+{
+    pad = string.Empty.PadLeft(indentWidth * count, ' ');
+%>
+<%= pad %>});
+<%
+    count--;
 }
+%>
+};
 
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  var address = server.address();
-  var bind = typeof address === 'string'
-    ? 'pipe ' + address
-    : 'port ' + address.port;
-  debug('Listening on ' + bind);
-}
+module.exports = {
+    doSeed: doSeed
+};

@@ -56,6 +56,8 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Register Name="IndexJade" Template="Templates/MEANWebService/index.jade.cst" %>
 <%@ Register Name="LayoutJade" Template="Templates/MEANWebService/layout.jade.cst" %>
 <%@ Register Name="WwwIndex" Template="Templates/MEANWebService/index.www.js.cst" %>
+<%@ Register Name="SeedIndex" Template="Templates/MEANWebService/index.seed.js.cst" %>
+<%@ Register Name="SeedIndexUtil" Template="Templates/MEANWebService/index.seed.util.js.cst" %>
 
 <%@ Register Name="Production" Template="Templates/MEANWebService/production.js.cst" %>
 <%@ Register Name="Development" Template="Templates/MEANWebService/development.js.cst" %>
@@ -77,6 +79,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Register Name="Model" Template="Templates/MEANWebService/model.js.cst" %>
 <%@ Register Name="Proxy" Template="Templates/MEANWebService/proxy.js.cst" %>
 <%@ Register Name="Route" Template="Templates/MEANWebService/route.js.cst" %>
+<%@ Register Name="Seed" Template="Templates/MEANWebService/seed.js.cst" %>
 
 <script runat="template">
 
@@ -129,6 +132,17 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _Development.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
         }
 
+        fileName = "production.js";
+        if (!System.IO.File.Exists(Path.Combine(outputDir, fileName)))
+        {
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            Production _Production = this.Create<Production>();
+            this.CopyPropertiesTo(_Production);
+            _Production.FileName = fileName;
+            _Production.BuildDate = buildDate;
+            _Production.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
+        }
+
         fileName = "index.js";
         file = new OutputFile(Path.Combine(outputDir, fileName));
         ConfigIndex _ConfigIndex = this.Create<ConfigIndex>();
@@ -137,14 +151,6 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         _ConfigIndex.BuildDate = buildDate;
         _ConfigIndex.RenderToFile(file, true);
         
-        fileName = "production.js";
-        file = new OutputFile(Path.Combine(outputDir, fileName));
-        Production _Production = this.Create<Production>();
-        this.CopyPropertiesTo(_Production);
-        _Production.FileName = fileName;
-        _Production.BuildDate = buildDate;
-        _Production.RenderToFile(file, true);
-
         outputDir = Path.Combine(buildPath, "routes");
 
         if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
@@ -233,6 +239,39 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         _IndexJade.FileName = fileName;
         _IndexJade.BuildDate = buildDate;
         _IndexJade.RenderToFile(file, true);
+
+        outputDir = Path.Combine(buildPath, "models-seed");
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+        
+        fileName = "development.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        SeedIndex _SeedIndexDev = this.Create<SeedIndex>();
+        this.CopyPropertiesTo(_SeedIndexDev);
+        _SeedIndexDev.FileName = fileName;
+        _SeedIndexDev.BuildDate = buildDate;
+        _SeedIndexDev.NodeEnv = "development";
+        _SeedIndexDev.FileSuffix = ".dev";
+        _SeedIndexDev.RenderToFile(file, true);
+
+        fileName = "production.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        SeedIndex _SeedIndexProd = this.Create<SeedIndex>();
+        this.CopyPropertiesTo(_SeedIndexProd);
+        _SeedIndexProd.FileName = fileName;
+        _SeedIndexProd.BuildDate = buildDate;
+        _SeedIndexProd.NodeEnv = "production";
+        _SeedIndexProd.FileSuffix = ".prod";
+        _SeedIndexProd.RenderToFile(file, true);
+        
+        fileName = "index.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        SeedIndexUtil _SeedIndexUtil = this.Create<SeedIndexUtil>();
+        this.CopyPropertiesTo(_SeedIndexUtil);
+        _SeedIndexUtil.FileName = fileName;
+        _SeedIndexUtil.BuildDate = buildDate;
+        _SeedIndexUtil.RenderToFile(file, true);
         
         return true;
     }
@@ -324,6 +363,44 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _Model.BuildDate = buildDate;
             _Model.CurrentTable = table;
             _Model.RenderToFile(file, true);
+            
+            outputDir = table.HasDefaultOnwer()
+                ? Path.Combine(buildPath, "models-seed", "development")
+                : Path.Combine(buildPath, "models-seed", "development", table.Owner.ToHypehatedLowercase());
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = table.Name.ToHypehatedLowercase() + ".seed.dev.js";
+            if (!System.IO.File.Exists(Path.Combine(outputDir, fileName)))
+            {
+                file = new OutputFile(Path.Combine(outputDir, fileName));
+                Seed _SeedDev = this.Create<Seed>();
+                this.CopyPropertiesTo(_SeedDev);
+                _SeedDev.FileName = fileName;
+                _SeedDev.BuildDate = buildDate;
+                _SeedDev.CurrentTable = table;
+                _SeedDev.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
+            }
+            
+            outputDir = table.HasDefaultOnwer()
+                ? Path.Combine(buildPath, "models-seed", "production")
+                : Path.Combine(buildPath, "models-seed", "production", table.Owner.ToHypehatedLowercase());
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = table.Name.ToHypehatedLowercase() + ".seed.prod.js";
+            if (!System.IO.File.Exists(Path.Combine(outputDir, fileName)))
+            {
+                file = new OutputFile(Path.Combine(outputDir, fileName));
+                Seed _SeedProd = this.Create<Seed>();
+                this.CopyPropertiesTo(_SeedProd);
+                _SeedProd.FileName = fileName;
+                _SeedProd.BuildDate = buildDate;
+                _SeedProd.CurrentTable = table;
+                _SeedProd.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
+            }
         }
 
         return true;

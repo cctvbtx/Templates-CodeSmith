@@ -1,0 +1,144 @@
+﻿<%-- 
+Name:   seed.js.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Desc:
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="JavaScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
+<%@ Property Name="OutputDirectory" Type="System.String" Optional="True" %>
+<%@ Property Name="OutputVersioning" Type="System.Boolean" Optional="True" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="ProjectName" Type="System.String" Optional="True" %>
+<%@ Property Name="VersionText" Type="System.String" Optional="True" %>
+<%@ Property Name="ProjectDescription" Type="System.String" Optional="True" %>
+<%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%-- 03. Dev Config --%>
+<%@ Property Name="DevHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="DevHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="DevDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="DevDbName" Type="System.String" Optional="True" %>
+
+<%-- 03. Prod Config --%>
+<%@ Property Name="ProdHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="ProdDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdDbName" Type="System.String" Optional="True" %>
+
+<%-- Local Properties --%>
+<%@ Property Name="FileName" Type="System.String" Optional="True" %>
+<%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
+<%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
+
+<%@ Map Name="DefaultsDelFlag" Src="Maps\DefaultsDelFlag.csmap" %>
+<%@ Map Name="SchemaFieldNames" Src="Maps\SchemaFieldNames.csmap" %>
+<%@ Map Name="SqlToMongoose" Src="Maps\SqlToMongoose.csmap" %>
+<%@ Map Name="SqlToMongooseKey" Src="Maps\SqlToMongooseKey.csmap" %>
+
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+<%
+var pkCount = 0;
+%>
+/*jslint node: true */
+<!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+
+'use strict';
+
+var now = new Date(),
+    data = require('../../<%= CurrentTable.HasDefaultOnwer() ? "" : "../" %>models');
+
+var items = [
+    // {
+<%
+foreach (var column in CurrentTable.Columns)
+{
+    var eol = CurrentTable.Columns.Last() == column ? "" : ",";
+    
+    if (column.IsPrimaryKeyMember){ pkCount++; }
+    if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
+    
+    if (column.IsPrimaryKeyMember || column.IsForeignKeyMember)
+    {
+%>
+    //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  ''<%=eol%>
+<%
+    }
+    else if (column.IsDeleteFlag())
+    {
+%>
+    //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  <%= DefaultsDelFlag[column.NativeType] %><%=eol%>
+<%
+    }
+    else if (column.IsVersionUserColumn())
+    {
+%>
+    //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  ''<%=eol%>
+<%
+    }
+    else if (column.IsVersionDateColumn())
+    {
+%>
+    //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  now<%=eol%>
+<%
+    }
+    else
+    {
+        switch (SqlToMongoose[column.NativeType])
+        {
+            case "String":
+%>
+    //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  ''<%=eol%>
+<%
+                break;
+            case "Date":
+            case "Number":
+%>
+    //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  null<%=eol%>
+<%
+                break;
+            default:
+%>
+    //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  INTENTIONAL ERROR FOR TYPE <%= SqlToMongoose[column.NativeType] %><%=eol%>
+<%
+                break;
+        }
+    }
+}
+%>    
+    // }
+];
+
+var doSeed = function (callback) {
+    if (!items && items.length < 1) { return callback(); }
+    data.<%= CurrentTable.HasDefaultOnwer() ? "" : CurrentTable.Owner.ToCamelCase() + "." %><%= CurrentTable.Name.ToPlural().ToCamelCase() %>.count({}, function(err, count){
+        if (err) { throw err; }
+        if (count > 0){ return callback(); }
+        data.<%= CurrentTable.HasDefaultOnwer() ? "" : CurrentTable.Owner.ToCamelCase() + "." %><%= CurrentTable.Name.ToPlural().ToCamelCase() %>.create(items, function(err){
+            if (err) { throw err; }
+            var word = items.length === 1 ? "item" : "items";
+            console.log('<%= CurrentTable.Name.ToSentence(' ', SentenceCase.Title) %> seeded: ' + items.length + ' ' + word);
+            return callback();
+        });
+    });
+};
+
+module.exports = {
+    items: items,
+    doSeed: doSeed
+};
