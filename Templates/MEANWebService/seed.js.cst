@@ -112,6 +112,11 @@ foreach (var column in CurrentTable.Columns)
     //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  null<%=eol%>
 <%
                 break;
+            case "Boolean":
+%>
+    //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  false<%=eol%>
+<%
+                break;
             default:
 %>
     //     <%= SchemaFieldNames[column.Name.ToCamelCase()] %>:  INTENTIONAL ERROR FOR TYPE <%= SqlToMongoose[column.NativeType] %><%=eol%>
@@ -131,8 +136,10 @@ var doSeed = function (callback) {
         if (count > 0){ return callback(); }
         data.<%= CurrentTable.HasDefaultOnwer() ? "" : CurrentTable.Owner.ToCamelCase() + "." %><%= CurrentTable.Name.ToPlural().ToCamelCase() %>.create(items, function(err){
             if (err) { throw err; }
-            var word = items.length === 1 ? "item" : "items";
-            console.log('<%= CurrentTable.Name.ToSentence(' ', SentenceCase.Title) %> seeded: ' + items.length + ' ' + word);
+            if (items.length > 0) {
+                var word = items.length === 1 ? "item" : "items";
+                console.log('<%= CurrentTable.Name.ToSentence(' ', SentenceCase.Title) %> seeded: ' + items.length + ' ' + word);
+            }
             return callback();
         });
     });
