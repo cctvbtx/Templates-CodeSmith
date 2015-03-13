@@ -130,7 +130,7 @@ foreach (var column in CurrentTable.Columns)
 ];
 
 var doSeed = function (callback) {
-    if (!items && items.length < 1) { return callback(); }
+    if (items || items.length < 1) { return callback(); }
     data.<%= CurrentTable.HasDefaultOnwer() ? "" : CurrentTable.Owner.ToCamelCase() + "." %><%= CurrentTable.Name.ToPlural().ToCamelCase() %>.count({}, function(err, count){
         if (err) { throw err; }
         if (count > 0){ return callback(); }
