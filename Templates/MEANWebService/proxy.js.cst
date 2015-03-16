@@ -582,9 +582,9 @@ var createNewOrGetMany = function (<%= CurrentTable.Name.ToPlural().ToCamelCase(
 
 
 
-// ==============
-// MODIFY - BEGIN
-// ==============
+// =============
+// COUNT - BEGIN
+// =============
 
 operations.Add("count");
 operations.Add("countAll");
@@ -606,7 +606,7 @@ var count = function (query, callback) {
 };
 
 var countAll = function (<%= CurrentTable.HasDeleteFlag() ? "includeDeleted, " : "" %>callback) {
-    var data = {<%= CurrentTable.HasDeleteFlag() ? " del: includeDeleted " : "" %>},
+    var dto = {<%= CurrentTable.HasDeleteFlag() ? " del: includeDeleted " : "" %>},
         client = request.createClient(BASE_URL);
     client.post(URL_PATH + '/count-all', dto, function (err, res, body) {
         if (err) { return callback(err); }
@@ -615,9 +615,9 @@ var countAll = function (<%= CurrentTable.HasDeleteFlag() ? "includeDeleted, " :
     });
 };
 <%
-// ==============
-// MODIFY - END
-// ==============
+// =============
+// COUNT - BEGIN
+// =============
 
 
 
