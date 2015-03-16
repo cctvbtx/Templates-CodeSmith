@@ -413,7 +413,7 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = f
     foreach (var column in columns.Where(x => !x.AllowDBNull))
     {
 %>
-    if (!<%= column.Name.ToCamelCase() %>) { return callback(new Error('<%= column.Name.ToCamelCase() %> is required but was not supplied')); }
+    if (typeof <%= column.Name.ToCamelCase() %> === 'undefined') { return callback(new Error('<%= column.Name.ToCamelCase() %> is required but was not supplied')); }
 <%
     }
 %>
@@ -491,7 +491,7 @@ var createNewOrGet = function (<%= paramArrayForCreate %>, callback) {
     foreach (var column in columnsForCreate.Where(x => !x.AllowDBNull))
     {
 %>
-    if (!<%= column.Name.ToCamelCase() %>) { return callback(new Error('<%= column.Name.ToCamelCase() %> is required but was not supplied')); }
+    if (typeof <%= column.Name.ToCamelCase() %> === 'undefined') { return callback(new Error('<%= column.Name.ToCamelCase() %> is required but was not supplied')); }
 <%
     }
 %>
@@ -528,6 +528,42 @@ foreach (var column in columnsForCreate)
             if (body && strings.notNullOrWhiteSpace(body.msg)) { response.msg = body.msg; }
             return callback(null, response);
         });
+    });
+};
+
+<%
+var createArray = string.Empty;
+foreach (var column in columnsForCreate)
+{
+    if (createArray.Length > 0){ createArray += ", "; }
+    createArray += CurrentTable.Name.ToCamelCase() + "." + column.Name.ToCamelCase();
+}
+%>
+var createNewOrGetItem = function (<%= CurrentTable.Name.ToCamelCase() %><%= CurrentTable.HasVersionUserColumn() ? ", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() : "" %>, callback) {
+    if (!<%= CurrentTable.Name.ToCamelCase() %>) { return callback(new Error('Invalid <%= CurrentTable.Name.ToCamelCase() %> item')); }
+    createNewOrGet(<%= createArray %><%= CurrentTable.HasVersionUserColumn() ? ", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() : "" %>, callback);
+};
+
+var createNewOrGetMany = function (<%= CurrentTable.Name.ToPlural().ToCamelCase() %><%= CurrentTable.HasVersionUserColumn() ? ", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() : "" %>, callback) {
+    if (!<%= CurrentTable.Name.ToPlural().ToCamelCase() %> || !util.isArray(<%= CurrentTable.Name.ToPlural().ToCamelCase() %>)) { return callback(new Error('Invalid array: <%= CurrentTable.Name.ToPlural().ToCamelCase() %>')); }
+    if (<%= CurrentTable.Name.ToPlural().ToCamelCase() %>.length < 1) { return callback(); }
+    var result = []
+    async.forEach(<%= CurrentTable.Name.ToPlural().ToCamelCase() %>, function (<%= CurrentTable.Name.ToCamelCase() %>, next){
+        createNewOrGetItem(<%= CurrentTable.Name.ToCamelCase() %><%= CurrentTable.HasVersionUserColumn() ? ", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() : "" %>, function(err, item){
+            if (err){
+                result.push(err);
+            } else {
+                <%= CurrentTable.Name.ToCamelCase() %>.id = item.id;
+                result.push(<%= CurrentTable.Name.ToCamelCase() %>);
+            }
+            next();
+        });
+    }, function(err){
+        if (err) {
+            return callback(err);
+        } else {
+            return callback(null, result);
+        }
     });
 };
 <%

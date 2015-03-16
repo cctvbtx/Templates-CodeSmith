@@ -76,7 +76,8 @@ var pkCount = 0;
 // SCHEMA DEFINITION & INSTANCE VARIABLES - BEGIN
 // ==============================================
 %>
-var dates = require('dzutils').dates,
+var booleans = require('dzutils').booleans,
+    dates = require('dzutils').dates,
     moment = require('moment'),
     mongoose = require('mongoose'),
     numbers = require('dzutils').numbers,
