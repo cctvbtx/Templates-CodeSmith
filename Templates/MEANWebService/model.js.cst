@@ -76,7 +76,8 @@ var pkCount = 0;
 // SCHEMA DEFINITION & INSTANCE VARIABLES - BEGIN
 // ==============================================
 %>
-var booleans = require('dzutils').booleans,
+var async = require('async'),
+    booleans = require('dzutils').booleans,
     dates = require('dzutils').dates,
     moment = require('moment'),
     mongoose = require('mongoose'),
@@ -218,8 +219,8 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).OrderBy(x 
 // ==================
 %>
 
-var validateItem = function (item, callback) {
-    if (!item) { return callback(new Error('No item to validate')); }
+var validateItem = function (item) {
+    if (!item) { return 'No item to validate'; }
 <% 
 pkCount = 0;
 foreach (var column in CurrentTable.Columns)
@@ -227,7 +228,7 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 
-    var text = "if (typeof item.{0} !== 'undefined') { if ({1}(item.{2})) { return callback(new Error('{3} is not a valid {4}')); }{5} }";
+    var text = "if (typeof item.{0} !== 'undefined') { if ({1}(item.{2})) { return '{3} is not a valid {4}'; }{5} }";
     text = text.Replace("{0}", SchemaFieldNames[column.Name.ToCamelCase()]);
     text = text.Replace("{2}", SchemaFieldNames[column.Name.ToCamelCase()]);
     if (SchemaFieldNames[column.Name.ToCamelCase()].Equals(column.Name.ToCamelCase(), StringComparison.Ordinal)){ text = text.Replace("{3}", SchemaFieldNames[column.Name.ToCamelCase()]); }
@@ -272,9 +273,20 @@ foreach (var column in CurrentTable.Columns)
 <% 
 }
 %>
-    return callback();
+    return null;
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.validateItem = validateItem;
+
+var validateItems = function (items) {
+    if (!items || !util.isArray(items) || items.length < 1){ return null; }
+    var i, err;
+    for (i = 0; i < items.length; i += 1) {
+        err = validateItem(items(i));
+        if (err){ return 'Item ' + i + ' error: ' + err; }
+    }
+    return null;
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.validateItems = validateItems;
 <%
 // ==================
 // VALIDATION - END
@@ -442,6 +454,43 @@ var toItemsFull = function (dtos) {
 
 
 
+
+// =================
+// UTILITIES - BEGIN
+// =================
+%>
+
+var filterUnique = function (array) {
+    if (!array || !util.isArray(array) || array.length < 1) { return array; }
+    var a, r, found, result = [];
+    for (a = 0; a < array.length; a += 1) {
+        if (typeof array[a].id !== 'undefined') {
+            found = false;
+            for (r = 0; r < result.length; r += 1) {
+                if (result[r].id === array[a].id) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found === false) { result.push(array[a]); }
+        }
+    }
+    return result;
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.filterUnique = filterUnique;
+<%
+// =================
+// UTILITIES - END
+// =================
+
+
+
+
+
+
+
+
+
 // =================
 // GET BY ID - BEGIN
 // =================
@@ -458,13 +507,12 @@ var getAll = function (callback) {
 
 var getById = function (id, callback) {
     var query = { _id: id<% if (CurrentTable.HasDeleteFlag()){ %>, <%= SchemaFieldNames[CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase()] %>: <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %><% } %> };
-    validateItem(query, function (err) {
+    var err = validateItem(query);
+    if (err) { return callback(new Error(err)); }
+    mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').findOne(query, function (err, item) {
         if (err) { return callback(err); }
-        mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').findOne(query, function (err, item) {
-            if (err) { return callback(err); }
-            if (item) { return callback(null, toDto(item)); }
-            return callback();
-        });
+        if (item) { return callback(null, toDto(item)); }
+        return callback();
     });
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getById = getById;
@@ -520,18 +568,66 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = f
     }
 %>
     };
-    validateItem(query, function (err) {
+    var err = validateItem(query);
+    if (err) { return callback(new Error(err)); }
+    mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').find<%= (index.IsUnique ? "One" : "") %>(query, function (err, <%= (index.IsUnique ? "item" : "items") %>) {
         if (err) { return callback(err); }
-        mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').find<%= (index.IsUnique ? "One" : "") %>(query, function (err, <%= (index.IsUnique ? "item" : "items") %>) {
-            if (err) { return callback(err); }
-            if (<%= (index.IsUnique ? "item" : "items") %>) { return callback(null, <%= (index.IsUnique ? "toDto" : "toDtos") %>(<%= (index.IsUnique ? "item" : "items") %>)); }
-            return callback();
-        });
+        if (<%= (index.IsUnique ? "item" : "items") %>) { return callback(null, <%= (index.IsUnique ? "toDto" : "toDtos") %>(<%= (index.IsUnique ? "item" : "items") %>)); }
+        return callback();
     });
 <%
 %>
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>;
+
+<%
+    var paramsText = string.Empty;
+    foreach (var column in index.MemberColumns.Where(x => !x.IsAuditColumn()))
+    {
+        if (paramsText.Length > 0){ paramsText += ", "; }
+        paramsText += "query." + column.Name.ToCamelCase();
+    }
+%>
+var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>Many = function (queries, callback) {
+    if (!queries || !util.isArray(queries)) { return callback(new Error('Invalid query array')); }
+    if (queries.length < 1) { return callback(); }
+    var result = [];
+    async.forEach(queries, function (query, next){
+        get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>(<%= paramsText %>, function (err, <%= (index.IsUnique ? "item" : "items") %>) {
+            if (err) {
+                return callback(new Error('Error on #' + result.length + ': ' + err.message));
+            } else {
+<%
+    if (index.IsUnique) 
+    {
+%>
+                result.push(item);
+<%
+    }
+    else
+    {
+%>
+                if (items && util.isArray(items)) {
+                    var i;
+                    for (i = 0; i < items.length; i += 1) {
+                        result.push(item);
+                    }
+                }
+<%
+    }
+%>
+            }
+            next();
+        });
+    }, function (err) {
+        if (err) {
+            return callback(err);
+        } else {
+            return callback(null, filterUnique(result));
+        }
+    });
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>Many = get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>Many;
 <%
 }
 // ====================
@@ -583,13 +679,12 @@ foreach (var column in columnsForCreate)
 }
 %>
     };
-    validateItem(data, function (err) {
+    var err = validateItem(data);
+    if (err) { return callback(new Error(err)); }
+    var newItem = new <%= CurrentTable.Name.ToPascalCase() %>(data);
+    newItem.save(function (err, item) {
         if (err) { return callback(err); }
-        var newItem = new <%= CurrentTable.Name.ToPascalCase() %>(data);
-        newItem.save(function (err, item) {
-            if (err) { return callback(err); }
-            return callback(null, toDto(item));
-        });
+        return callback(null, toDto(item));
     });
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.createNew = createNew;
@@ -677,10 +772,9 @@ var getCount = function (<%= (CurrentTable.HasDeleteFlag() ? "includeDeleted, " 
 
 var getCountByQuery = function (queryDto, callback) {
     var query = toItem(queryDto);
-    validateItem(query, function (err) {
-        if (err) { return callback(new Error('Invalid query: ' + err.message)); }
-        mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').count(query, callback);
-    });
+    var err = validateItem(query);
+    if (err) { return callback(new Error('Invalid query: ' + err)); }
+    mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').count(query, callback);
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.getCountByQuery = getCountByQuery;
 <%
@@ -703,8 +797,21 @@ var getCountByQuery = function (queryDto, callback) {
 %>
 
 var modifyMany = function (queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
-    if (!updateDto) { return callback(new Error('Nothing to update')); }
+    if (typeof queryDto === 'undefined') { return callback(new Error('No query supplied')); }
+    if (typeof updateDto === 'undefined') { return callback(new Error('No Update Supplied')); }
 <%
+    if (CurrentTable.HasVersionUserColumn())
+    {
+%>
+    if (typeof <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> === 'undefined') { return callback(new Error('No <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> supplied')); }
+<%
+    }
+    if (CurrentTable.HasDeleteFlag())
+    {
+%>
+    queryDto.<%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %> = <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %>;
+<%
+    }
     if (CurrentTable.HasVersionDateColumn())
     {
 %>
@@ -720,19 +827,30 @@ var modifyMany = function (queryDto, updateDto<%= CurrentTable.HasVersionUserCol
 %>
     var query = toItem(queryDto),
         update = toItem(updateDto);
-    validateItem(query, function (err) {
-        if (err) { return callback(new Error('Invalid query: ' + err.message)); }
-        validateItem(update, function (err) {
-            if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-            return mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').update(query, update, callback);
-        });
-    });
+    var err = validateItem(query);
+    if (err) { return callback(new Error('Invalid query: ' + err)); }
+    err = validateItem(update);
+    if (err) { return callback(new Error('Invalid update: ' + err)); }
+    return mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').update(query, update, callback);
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.modifyMany = modifyMany;
 
 var modifyOne = function (queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
-    if (!updateDto) { return callback(new Error('Nothing to update')); }
+    if (typeof queryDto === 'undefined') { return callback(new Error('No query supplied')); }
+    if (typeof updateDto === 'undefined') { return callback(new Error('No Update Supplied')); }
 <%
+    if (CurrentTable.HasVersionUserColumn())
+    {
+%>
+    if (typeof <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> === 'undefined') { return callback(new Error('No <%= CurrentTable.GetVersionUserColumn().Name.ToCamelCase() %> supplied')); }
+<%
+    }
+    if (CurrentTable.HasDeleteFlag())
+    {
+%>
+    queryDto.<%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %> = <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %>;
+<%
+    }
     if (CurrentTable.HasVersionDateColumn())
     {
 %>
@@ -748,16 +866,14 @@ var modifyOne = function (queryDto, updateDto<%= CurrentTable.HasVersionUserColu
 %>
     var query = toItem(queryDto),
         update = toItem(updateDto);
-    validateItem(query, function (err) {
-        if (err) { return callback(new Error('Invalid query: ' + err.message)); }
-        validateItem(update, function (err) {
-            if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-            mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').findOneAndUpdate(query, update, function (err, item) {
-                if (err) { return callback(err); }
-                if (item) { return callback(null, toDto(item)); }
-                return callback();
-            });
-        });
+    var err = validateItem(query);
+    if (err) { return callback(new Error('Invalid query: ' + err)); }
+    err = validateItem(update);
+    if (err) { return callback(new Error('Invalid update: ' + err)); }
+    mongoose.model('<%= CurrentTable.Name.ToPascalCase() %>').findOneAndUpdate(query, update, function (err, item) {
+        if (err) { return callback(err); }
+        if (item) { return callback(null, toDto(item)); }
+        return callback();
     });
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.modifyOne = modifyOne;
@@ -790,12 +906,15 @@ else
 %>
 
 var deleteMany = function (queryDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    if (typeof queryDto === 'undefined') { return callback(new Error('No query supplied')); }
+    queryDto.<%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %> = <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %>;
     var updateDto = { <%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %>: <%= ValuesDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> };
     return modifyMany(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.deleteMany = deleteMany;
 
 var deleteOne = function (queryDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
+    if (typeof queryDto === 'undefined') { return callback(new Error('No query supplied')); }
     var updateDto = { <%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %>: <%= ValuesDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> };
     return modifyOne(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
 };

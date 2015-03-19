@@ -122,6 +122,15 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).Where(x =>
         return res.send({ <%= index.IsUnique ? "item: item" : "items: items" %> });
     });
 });
+
+<%= CurrentTable.Name.ToCamelCase() %>Router.post('/get-<%= (index.IsUnique ? "one-" : "") %>by-<%= index.CreateUniqueName().ToHypehatedLowercase() %>-many', function (req, res) {
+    var queries = req.body.queries || null,
+        <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
+    <%= CurrentTable.Name.ToCamelCase() %>Model.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>Many(queries, function (err, items) {
+        if (err) { return res.status(500).send({ msg: err.message }); }
+        return res.send({ items: items });
+    });
+});
 <%
 }
 // ====================

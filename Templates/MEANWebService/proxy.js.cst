@@ -79,7 +79,8 @@ var operations = new List<string>();
 %>
 var CONFIG_PATH = '<%= (CurrentTable.HasDefaultOnwer() ? "" : "../") %>../../config';
 
-var config = require(CONFIG_PATH),
+var async = require('async'),
+    config = require(CONFIG_PATH),
     dates = require('dzutils').dates,
     request = require('request-json'),
     strings = require('dzutils').strings,
@@ -106,8 +107,8 @@ var BASE_URL = config.proxies.<%= ProjectName %>.url,
 operations.Add("validateItem");
 %>
 
-var validateItem = function (item, callback) {
-    if (!item) { return callback(new Error('No item to validate')); }
+var validateItem = function (item) {
+    if (!item) { return 'No item to validate'; }
 <% 
 pkCount = 0;
 foreach (var column in CurrentTable.Columns)
@@ -115,7 +116,7 @@ foreach (var column in CurrentTable.Columns)
     if (column.IsPrimaryKeyMember){ pkCount++; }
     if (column.IsPrimaryKeyMember && pkCount > 1){ continue; }
 
-    var text = "if (typeof item.{0} !== 'undefined') { if ({1}(item.{2})) { return callback(new Error('{3} is not a valid {4}')); }{5} }";
+    var text = "if (typeof item.{0} !== 'undefined') { if ({1}(item.{2})) { return '{3} is not a valid {4}'; }{5} }";
     text = text.Replace("{0}", column.Name.ToCamelCase());
     text = text.Replace("{2}", column.Name.ToCamelCase());
     if (column.Name.ToCamelCase().Equals(DtoFieldNames[column.Name.ToCamelCase()], StringComparison.Ordinal)){ text = text.Replace("{3}", column.Name.ToCamelCase()); }
@@ -162,7 +163,17 @@ foreach (var column in CurrentTable.Columns)
 <% 
 }
 %>
-    return callback();
+    return null;
+};
+
+var validateItems = function (items) {
+    if (!items || !util.isArray(items) || items.length < 1){ return null; }
+    var i, err;
+    for (i = 0; i < items.length; i += 1) {
+        err = validateItem(items[i]);
+        if (err){ return 'Item ' + i + ' error: ' + err; }
+    }
+    return null;
 };
 <%
 // ==================
@@ -428,34 +439,84 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = f
     }
 %>
     };
-    validateItem(item, function (err) {
+    var err = validateItem(item);
+    if (err) { return callback(err); }
+    var client = request.createClient(BASE_URL),
+        url = URL_PATH + '/<%= opName.ToHypehatedLowercase() %>';
+    client.post(url, toDto(item), function (err, res, body) {
+        if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
         if (err) { return callback(err); }
-        var client = request.createClient(BASE_URL),
-            url = URL_PATH + '/<%= opName.ToHypehatedLowercase() %>';
-        client.post(url, toDto(item), function (err, res, body) {
-            if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
-            if (err) { return callback(err); }
 <%
     if (index.IsUnique)
     {
 %>
-            if (!body || !body.item) { console.log("not returned"); return callback(); }
-            if (body && body.items && body.items.length > 1) { console.log("too many results returned"); return callback(); }
-            return callback(null, toItem(body.item));
+        if (!body || !body.item) { console.log("not returned"); return callback(); }
+        if (body && body.items && body.items.length > 1) { console.log("too many results returned"); return callback(); }
+        return callback(null, toItem(body.item));
 <%
     }
     else
     {
 %>
-            if (!body || !body.items || body.items.length < 1) { console.log("not returned"); return callback(); }
-            return callback(null, toItems(body.items));
+        if (!body || !body.items || body.items.length < 1) { console.log("not returned"); return callback(); }
+        return callback(null, toItems(body.items));
 <%
     }
 %>
-        });
     });
+};
+
 <%
+    opName = "get" + (index.IsUnique ? "One" : "") + "By" + index.CreateUniqueName() + "Many";
+    operations.Add(opName);
 %>
+var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>Many = function (queries, callback) {
+    if (!queries || !util.isArray(queries)) { return callback(new Error('Invalid query array')); }
+    if (queries.length < 1) { return callback(); }
+<%
+    if (columns.Any(x => !x.AllowDBNull) || CurrentTable.HasDeleteFlag())
+    {
+%>
+    var i;
+<%
+    }
+    
+    if (columns.Any(x => !x.AllowDBNull))
+    {
+%>
+    for (i = 0; i < queries.length; i += 1) {
+<%
+        foreach (var column in columns.Where(x => !x.AllowDBNull))
+        {
+%>
+        if (typeof queries[i].<%= column.Name.ToCamelCase() %> === 'undefined') { return callback(new Error('<%= column.Name.ToCamelCase() %> is required but was not supplied on query item #' + i)); }
+<%
+        }
+%>
+    }
+<%
+    }
+    
+    if (CurrentTable.HasDeleteFlag())
+    {
+%>
+    for (i = 0; i < queries.length; i += 1) {
+        if (typeof queries[i].<%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %> === 'undefined') { queries[i].<%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %> = <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %>; }
+    }
+<%
+    }
+%>
+    var err = validateItems(queries);
+    if (err) { return callback(err); }
+    var client = request.createClient(BASE_URL),
+        url = URL_PATH + '/<%= opName.ToHypehatedLowercase() %>',
+        data = { queries: toDtos(queries) };
+    client.post(url, data, function (err, res, body) {
+        if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
+        if (err) { return callback(err); }
+        if (!body || !body.items || body.items.length < 1) { console.log("not returned"); return callback(); }
+        return callback(null, toItems(body.items));
+    });
 };
 <%
 }
@@ -519,23 +580,22 @@ foreach (var column in columnsForCreate)
 }
 %>
     };
-    validateItem(item, function (err) {
+    var err = validateItem(item);
+    if (err) { return callback(err); }
+    var client = request.createClient(BASE_URL);
+    client.post(URL_PATH, toDto(item), function (err, res, body) {
         if (err) { return callback(err); }
-        var client = request.createClient(BASE_URL);
-        client.post(URL_PATH, toDto(item), function (err, res, body) {
-            if (err) { return callback(err); }
-            var response = {
-                id: (body && body.id ? body.id : null)
-            };
-            if (body && strings.notNullOrWhiteSpace(body.msg)) { response.msg = body.msg; }
-            return callback(null, response);
-        });
+        var response = {
+            id: (body && body.id ? body.id : null)
+        };
+        if (body && strings.notNullOrWhiteSpace(body.msg)) { response.msg = body.msg; }
+        return callback(null, response);
     });
 };
 
 <%
 var createArray = string.Empty;
-foreach (var column in columnsForCreate)
+foreach (var column in columnsForCreate.Where(x => !x.IsAuditColumn()))
 {
     if (createArray.Length > 0){ createArray += ", "; }
     createArray += CurrentTable.Name.ToCamelCase() + "." + column.Name.ToCamelCase();
@@ -549,7 +609,7 @@ var createNewOrGetItem = function (<%= CurrentTable.Name.ToCamelCase() %><%= Cur
 var createNewOrGetMany = function (<%= CurrentTable.Name.ToPlural().ToCamelCase() %><%= CurrentTable.HasVersionUserColumn() ? ", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() : "" %>, callback) {
     if (!<%= CurrentTable.Name.ToPlural().ToCamelCase() %> || !util.isArray(<%= CurrentTable.Name.ToPlural().ToCamelCase() %>)) { return callback(new Error('Invalid array: <%= CurrentTable.Name.ToPlural().ToCamelCase() %>')); }
     if (<%= CurrentTable.Name.ToPlural().ToCamelCase() %>.length < 1) { return callback(); }
-    var result = []
+    var result = [];
     async.forEach(<%= CurrentTable.Name.ToPlural().ToCamelCase() %>, function (<%= CurrentTable.Name.ToCamelCase() %>, next){
         createNewOrGetItem(<%= CurrentTable.Name.ToCamelCase() %><%= CurrentTable.HasVersionUserColumn() ? ", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() : "" %>, function(err, item){
             if (err){
@@ -592,16 +652,15 @@ operations.Add("countAll");
 
 var count = function (query, callback) {
     if (!query) { return callback(new Error('Query params required but not supplied')); }
-    validateItem(query, function (err) {
-        if (err) { return callback(new Error('Invalid query: ' + err.message)); }
-        var client = request.createClient(BASE_URL),
-            dto = {};
-        dto.query = toDto(query);
-        client.post(URL_PATH + '/count', dto, function (err, res, body) {
-            if (err) { return callback(err); }
-            if (typeof body.count === 'undefined') { return callback(new Error('Count not returned')); }
-            return callback(null, body.count);
-        });
+    var err = validateItem(item);
+    if (err) { return callback(new Error('Invalid query: ' + err.message)); }
+    var client = request.createClient(BASE_URL),
+        dto = {};
+    dto.query = toDto(query);
+    client.post(URL_PATH + '/count', dto, function (err, res, body) {
+        if (err) { return callback(err); }
+        if (typeof body.count === 'undefined') { return callback(new Error('Count not returned')); }
+        return callback(null, body.count);
     });
 };
 
@@ -639,46 +698,42 @@ operations.Add("modifyById");
 var modifyMany = function (query, update<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
     if (!query) { return callback(new Error('Query params required but not supplied')); }
     if (!update) { return callback(new Error('Update params required by not supplied')); }
-    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>};
-    validateItem(data, function (err) {     // Validate any user value that may exist
+    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>},
+        err;
+    err = validateItem(data);
+    if (err) { return callback(err); }
+    err = validateItem(query);
+    if (err) { return callback(new Error('Invalid query: ' + err.message)); }
+    err = validateItem(update);
+    if (err) { return callback(new Error('Invalid update: ' + err.message)); }
+    var client = request.createClient(BASE_URL),
+        dto = toDto(data);
+    dto.query = toDto(query);
+    dto.update = toDto(update);
+    client.put(URL_PATH + '/many', dto, function (err, res, body) {
         if (err) { return callback(err); }
-        validateItem(query, function (err) {
-            if (err) { return callback(new Error('Invalid query: ' + err.message)); }
-            validateItem(update, function (err) {
-                if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var client = request.createClient(BASE_URL),
-                    dto = toDto(data);
-                dto.query = toDto(query);
-                dto.update = toDto(update);
-                client.put(URL_PATH + '/many', dto, function (err, res, body) {
-                    if (err) { return callback(err); }
-                    return callback(null, body);
-                });
-            });
-        });
+        return callback(null, body);
     });
 };
 
 var modifyOne = function (query, update<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
     if (!query) { return callback(new Error('Query params required but not supplied')); }
     if (!update) { return callback(new Error('Update params required by not supplied')); }
-    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>};
-    validateItem(data, function (err) {     // Validate any user value that may exist
+    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>},
+        err;
+    err = validateItem(data);
+    if (err) { return callback(err); }
+    err = validateItem(query);
+    if (err) { return callback(new Error('Invalid query: ' + err.message)); }
+    err = validateItem(update);
+    if (err) { return callback(new Error('Invalid update: ' + err.message)); }
+    var client = request.createClient(BASE_URL),
+        dto = toDto(data);
+    dto.query = toDto(query);
+    dto.update = toDto(update);
+    client.put(URL_PATH, dto, function (err, res, body) {
         if (err) { return callback(err); }
-        validateItem(query, function (err) {
-            if (err) { return callback(new Error('Invalid query: ' + err.message)); }
-            validateItem(update, function (err) {
-                if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var client = request.createClient(BASE_URL),
-                    dto = toDto(data);
-                dto.query = toDto(query);
-                dto.update = toDto(update);
-                client.put(URL_PATH, dto, function (err, res, body) {
-                    if (err) { return callback(err); }
-                    return callback(null, body);
-                });
-            });
-        });
+        return callback(null, body);
     });
 };
 

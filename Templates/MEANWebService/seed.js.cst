@@ -60,7 +60,8 @@ var pkCount = 0;
 
 'use strict';
 
-var now = new Date(),
+var arrays = require('dzutils').arrays,
+    now = new Date(),
     data = require('../../<%= CurrentTable.HasDefaultOnwer() ? "" : "../" %>models');
 
 var items = [
@@ -130,16 +131,14 @@ foreach (var column in CurrentTable.Columns)
 ];
 
 var doSeed = function (callback) {
-    if (items || items.length < 1) { return callback(); }
+    if (arrays.count(items) < 1) { return callback(); }
     data.<%= CurrentTable.HasDefaultOnwer() ? "" : CurrentTable.Owner.ToCamelCase() + "." %><%= CurrentTable.Name.ToPlural().ToCamelCase() %>.count({}, function(err, count){
         if (err) { throw err; }
         if (count > 0){ return callback(); }
         data.<%= CurrentTable.HasDefaultOnwer() ? "" : CurrentTable.Owner.ToCamelCase() + "." %><%= CurrentTable.Name.ToPlural().ToCamelCase() %>.create(items, function(err){
             if (err) { throw err; }
-            if (items.length > 0) {
-                var word = items.length === 1 ? "item" : "items";
-                console.log('<%= CurrentTable.Name.ToSentence(' ', SentenceCase.Title) %> seeded: ' + items.length + ' ' + word);
-            }
+            var word = (arrays.count(items) == 1) ? "item" : "items";
+            console.log('<%= CurrentTable.Name.ToSentence(' ', SentenceCase.Title) %> seeded: ' + items.length + ' ' + word);
             return callback();
         });
     });
