@@ -72,6 +72,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
      PER OWNER TEMPLATES
      ########################################################################### --%>
 <%@ Register Name="ProxyIndex" Template="Templates/MEANWebService/index.proxy.js.cst" %>
+<%@ Register Name="ServiceIndex" Template="Templates/MEANWebService/index.service.js.cst" %>
 
 <%-- ###########################################################################
      PER TABLE TEMPLATES
@@ -79,6 +80,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Register Name="Model" Template="Templates/MEANWebService/model.js.cst" %>
 <%@ Register Name="Proxy" Template="Templates/MEANWebService/proxy.js.cst" %>
 <%@ Register Name="Route" Template="Templates/MEANWebService/route.js.cst" %>
+<%@ Register Name="Service" Template="Templates/MEANWebService/service.js.cst" %>
 <%@ Register Name="Seed" Template="Templates/MEANWebService/seed.js.cst" %>
 
 <script runat="template">
@@ -304,6 +306,22 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _ProxyIndex.BuildDate = buildDate;
             _ProxyIndex.CurrentOwner = owner;
             _ProxyIndex.RenderToFile(file, true);
+
+            outputDir = owner.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)
+                ? Path.Combine(buildPath + ".Services")
+                : Path.Combine(buildPath + ".Services", owner.ToHypehatedLowercase());
+            
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = "index.js";
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            ServiceIndex _ServiceIndex = this.Create<ServiceIndex>();
+            this.CopyPropertiesTo(_ServiceIndex);
+            _ServiceIndex.FileName = fileName;
+            _ServiceIndex.BuildDate = buildDate;
+            _ServiceIndex.CurrentOwner = owner;
+            _ServiceIndex.RenderToFile(file, true);
         }
 
         return true;
@@ -347,6 +365,24 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _Proxy.BuildDate = buildDate;
             _Proxy.CurrentTable = table;
             _Proxy.RenderToFile(file, true);
+            
+            outputDir = table.HasDefaultOnwer()
+                ? Path.Combine(buildPath + ".Services")
+                : Path.Combine(buildPath + ".Services", table.Owner.ToHypehatedLowercase());
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            if (!File.Exists(Path.Combine(outputDir, fileName))) {
+                fileName = table.Name.ToHypehatedLowercase() + ".service.js";
+                file = new OutputFile(Path.Combine(outputDir, fileName));
+                Service _Service = this.Create<Service>();
+                this.CopyPropertiesTo(_Service);
+                _Service.FileName = fileName;
+                _Service.BuildDate = buildDate;
+                _Service.CurrentTable = table;
+                _Service.RenderToFile(file, false);
+            }
             
             outputDir = table.HasDefaultOnwer()
                 ? Path.Combine(buildPath, "models")
