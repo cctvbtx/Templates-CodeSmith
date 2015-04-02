@@ -94,7 +94,7 @@ foreach(var owner in owners)
     foreach (var table in tables)
     {
 %>
-    <%= (isDefaultOwner ? "" : "    ") %><%= StringUtil.ToPlural(table.Name).ToCamelCase() %>: <%= StringUtil.ToPlural(table.Name).ToCamelCase() %><%= ((table == tables.Last()) ? string.Empty : ",") %>
+    <%= (isDefaultOwner ? "" : "    ") %><%= StringUtil.ToPlural(table.Name).ToCamelCase() %>: <%= StringUtil.ToPlural(table.Name).ToCamelCase() %><%= (table.HasDefaultOnwer() ? (table != tables.Last() || owner != owners.Last() ? "," : "") : (table != tables.Last() ? "," : "")) %>
 <%
     }
     

@@ -351,7 +351,7 @@ operations.Add("getByIds");
 var getAll = function (callback) {
     var client = request.createClient(BASE_URL);
     client.get(URL_PATH, function (err, res, body) {
-        if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
+        if (err && res && res.statusCode === 404) { console.log("not found"); return callback(); }
         if (err) { return callback(err); }
         if (!body || !body.items || body.items.length < 1) { console.log("not returned"); return callback(); }
         return callback(null, toItems(body.items));
@@ -363,7 +363,7 @@ var getById = function (id, callback) {
     var client = request.createClient(BASE_URL),
         url = URL_PATH + '/' + id;
     client.get(url, function (err, res, body) {
-        if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
+        if (err && res && res.statusCode === 404) { console.log("not found"); return callback(); }
         if (err) { return callback(err); }
         if (!body || !body.item) { console.log("not returned"); return callback(); }
         return callback(null, toItem(body.item));
@@ -380,7 +380,7 @@ var getByIds = function (ids, callback) {
         data = { ids: ids },
         url = URL_PATH + '/get-by-ids';
     client.post(url, data, function (err, res, body) {
-        if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
+        if (err && res && res.statusCode === 404) { console.log("not found"); return callback(); }
         if (err) { return callback(err); }
         if (!body || !body.items) { console.log("not returned"); return callback(); }
         return callback(null, toItems(body.items));
@@ -444,7 +444,7 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = f
     var client = request.createClient(BASE_URL),
         url = URL_PATH + '/<%= opName.ToHypehatedLowercase() %>';
     client.post(url, toDto(item), function (err, res, body) {
-        if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
+        if (err && res && res.statusCode === 404) { console.log("not found"); return callback(); }
         if (err) { return callback(err); }
 <%
     if (index.IsUnique)
@@ -512,7 +512,7 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>Many
         url = URL_PATH + '/<%= opName.ToHypehatedLowercase() %>',
         data = { queries: toDtos(queries) };
     client.post(url, data, function (err, res, body) {
-        if (err && res.statusCode === 404) { console.log("not found"); return callback(); }
+        if (err && res && res.statusCode === 404) { console.log("not found"); return callback(); }
         if (err) { return callback(err); }
         if (!body || !body.items || body.items.length < 1) { console.log("not returned"); return callback(); }
         return callback(null, toItems(body.items));

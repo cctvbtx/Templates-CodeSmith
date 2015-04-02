@@ -67,7 +67,6 @@ var pkCount = 0;
     var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
     <%= CurrentTable.Name.ToCamelCase() %>Model.getAll(function (err, items) {
         if (err) { throw err; }
-        // if (!items || items.length < 1) { return res.status(404).send({}); }
         return res.send({ items: items });
     });
 });
@@ -76,7 +75,6 @@ var pkCount = 0;
     var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
     <%= CurrentTable.Name.ToCamelCase() %>Model.getById(req.params.id, function (err, item) {
         if (err) { throw err; }
-        // if (!item) { return res.status(404).send({}); }
         return res.send({ item: item });
     });
 });
@@ -85,7 +83,6 @@ var pkCount = 0;
     var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
     <%= CurrentTable.Name.ToCamelCase() %>Model.getByIds(req.body.ids, function (err, items) {
         if (err) { throw err; }
-        // if (!items || items.length < 1) { return res.status(404).send({}); }
         return res.send({ items: items });
     });
 });
@@ -107,18 +104,17 @@ foreach(var index in CurrentTable.Indexes.Where(x => !x.IsPrimaryKey).Where(x =>
 
 <%= CurrentTable.Name.ToCamelCase() %>Router.post('/get-<%= (index.IsUnique ? "one-" : "") %>by-<%= index.CreateUniqueName().ToHypehatedLowercase() %>', function (req, res) {
 <%
-    foreach(var column in index.MemberColumns)
+    foreach(var column in index.MemberColumns.Where(x => !x.IsAuditColumn()))
     {
         var prefix = (column == index.MemberColumns.First()) ? "var " : "    ";
 %>
-    <%= prefix %><%= column.Name.ToCamelCase() %> = req.body.<%= DtoFieldNames[column.Name.ToCamelCase()] %>,
+    <%= prefix %><%= column.Name.ToCamelCase() %> = req.body.<%= DtoFieldNames[column.Name.ToCamelCase()] %> || null,
 <%
     }
 %>
         <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>();
     <%= CurrentTable.Name.ToCamelCase() %>Model.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>(<%= index.ToParamsArray() %>, function (err, <%= index.IsUnique ? "item" : "items" %>) {
         if (err) { throw err; }
-        // if (!item<%= index.IsUnique ? "" : "s || items.length < 1" %>) { return res.status(404).send({}); }
         return res.send({ <%= index.IsUnique ? "item: item" : "items: items" %> });
     });
 });

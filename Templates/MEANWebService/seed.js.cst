@@ -57,6 +57,18 @@ var pkCount = 0;
 %>
 /*jslint node: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+/**
+* NAME LEGEND:
+<%
+var maxNameLength = (CurrentTable.Columns.Count < 1) ? 0 : CurrentTable.Columns.OrderByDescending(x => x.Name.Length).First().Name.Length;
+foreach (var column in CurrentTable.Columns)
+{
+%>
+* <%= column.Name.PadRight(maxNameLength, ' ') %> = <%= SchemaFieldNames[column.Name.ToCamelCase()] %><%= column.IsFixedLength() ? "   * FIXED LENGTH" : "" %>
+<%
+}
+%>
+*/
 
 'use strict';
 

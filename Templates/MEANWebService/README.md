@@ -1,4 +1,4 @@
-# MEAN Stack Web Service Template v0.3.0
+# MEAN Stack Web Service Template v0.3.1
 
 ## Summary
 
@@ -70,6 +70,22 @@ Once running two sets of URLs will be available:
 - Enhance Update methods to check for collisions  
 - Replace composite PK with unique constraint (currently skipping additional PK columns)  
 
+## Bugs & Limitations
+One bug exists with relation to MongoDB and Mongoose.  After generating the templates, and running the app, Mongoose throws an error:
+
+    TypeError: Cannot read property 'length' of undefined.
+
+The file in question is:
+
+    <% App Dir %>\node_modules\mongoose\node_modules\mongodb\lib\mongodb\db.js
+    Line 1581, Column 31
+
+The problem appears to be with the variable "index" in the `db.js` file.  The problem has been reported to the MongoDB team.  The current workaround for this problem is to add the following line before the for loop:
+
+    indexes = indexes || [];
+
+Please note that you will need to re-add this line to the `db.js` file if you perform an `npm update`.
+
 ## Updates
 ### v0.1.1
 - Added data index template (`index.data.js.cst`)
@@ -92,7 +108,10 @@ Once running two sets of URLs will be available:
 ### v0.3.0
 - Added seeding methods and configuration files.  Added `count` operations for model, routes, and proxy.
 
+### v0.3.1
+- Added stub files for service operations.  These files call upon the proxy files added in v0.3.0.  As with the proxy files, these files are meant to be included as "externals" within a separate project.
+
 ---
 
-Last updated: 3/10/2015 3:52:54 PM 
+Last updated: 4/2/2015 3:06:35 PM 
 

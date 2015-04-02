@@ -63,6 +63,7 @@ Desc:
 
 <%
 var pkCount = 0;
+var paramsText = string.Empty;
 
 
 
@@ -76,7 +77,8 @@ var pkCount = 0;
 // SCHEMA DEFINITION & INSTANCE VARIABLES - BEGIN
 // ==============================================
 %>
-var async = require('async'),
+var arrays = require('dzutils').arrays,
+    async = require('async'),
     booleans = require('dzutils').booleans,
     dates = require('dzutils').dates,
     moment = require('moment'),
@@ -264,7 +266,9 @@ foreach (var column in CurrentTable.Columns)
             text = text.Replace("{5}", string.Empty);
             break;
         default:
-            // validator = "TYPE NOT ACCOUNTED FOR";
+%>
+            TYPE NOT ACCOUNTED FOR: + <%= typeName%> /  COLUMN: <%= column.Name %>
+<% 
             break;
     }
     // validator += column.AllowDBNull ? "OrNull" : string.Empty;
@@ -278,7 +282,7 @@ foreach (var column in CurrentTable.Columns)
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.validateItem = validateItem;
 
 var validateItems = function (items) {
-    if (!items || !util.isArray(items) || items.length < 1){ return null; }
+    if (arrays.count(items) < 1) { return null; }
     var i, err;
     for (i = 0; i < items.length; i += 1) {
         err = validateItem(items(i));
@@ -325,7 +329,7 @@ foreach (var column in CurrentTable.Columns)
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDto = toDto;
 
 var toDtos = function (items) {
-    if (!items || items.length < 1) { return null; }
+    if (arrays.count(items) < 1) { return null; }
     var i, dtos = [];
     for (i = 0; i < items.length; i += 1) {
         dtos.push(toDto(items[i]));
@@ -356,7 +360,7 @@ foreach (var column in CurrentTable.Columns)
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toDtoFull = toDtoFull;
 
 var toDtosFull = function (items) {
-    if (!items || items.length < 1) { return null; }
+    if (arrays.count(items) < 1) { return null; }
     var i, dtos = [];
     for (i = 0; i < items.length; i += 1) {
         dtos.push(toDtoFull(items[i]));
@@ -402,7 +406,7 @@ foreach (var column in CurrentTable.Columns)
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItem = toItem;
 
 var toItems = function toItems(dtos) {
-    if (!dtos || dtos.length < 1) { return null; }
+    if (arrays.count(dtos) < 1) { return null; }
     var i, items = [];
     for (i = 0; i < dtos.length; i += 1) {
         items.push(toItem(dtos[i]));
@@ -433,7 +437,7 @@ foreach (var column in CurrentTable.Columns)
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.toItemFull = toItemFull;
 
 var toItemsFull = function (dtos) {
-    if (!dtos || dtos.length < 1) { return null; }
+    if (arrays.count(dtos) < 1) { return null; }
     var i, items = [];
     for (i = 0; i < dtos.length; i += 1) {
         items.push(toItemFull(dtos[i]));
@@ -461,7 +465,7 @@ var toItemsFull = function (dtos) {
 %>
 
 var filterUnique = function (array) {
-    if (!array || !util.isArray(array) || array.length < 1) { return array; }
+    if (arrays.count(array) < 1) { return null; }
     var a, r, found, result = [];
     for (a = 0; a < array.length; a += 1) {
         if (typeof array[a].id !== 'undefined') {
@@ -581,7 +585,7 @@ var get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = f
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %> = get<%= (index.IsUnique ? "One" : "") %>By<%= index.CreateUniqueName() %>;
 
 <%
-    var paramsText = string.Empty;
+    paramsText = string.Empty;
     foreach (var column in index.MemberColumns.Where(x => !x.IsAuditColumn()))
     {
         if (paramsText.Length > 0){ paramsText += ", "; }
@@ -688,6 +692,37 @@ foreach (var column in columnsForCreate)
     });
 };
 <%= CurrentTable.Name.ToCamelCase() %>Schema.methods.createNew = createNew;
+
+<%
+    paramsText = string.Empty;
+    foreach (var column in columnsForCreate.Where(x => !x.IsAuditColumn() || x.IsVersionUserColumn()))
+    {
+        if (paramsText.Length > 0){ paramsText += ", "; }
+        paramsText += "item." + column.Name.ToCamelCase();
+    }
+%>
+var createNewMany = function (items, callback) {
+    if (!items || !util.isArray(items)) { return callback(new Error('Invalid item array')); }
+    if (items.length < 1) { return callback(); }
+    var ids = [];
+    async.forEach(items, function (item, next){
+        createNew(<%= paramsText %>, function (err, id) {
+            if (err) {
+                return callback(new Error('Error on #' + ids.length + ': ' + err.message));
+            } else {
+                ids.push(id);
+            }
+            next();
+        });
+    }, function (err) {
+        if (err) {
+            return callback(err);
+        } else {
+            return callback(null, ids);
+        }
+    });
+};
+<%= CurrentTable.Name.ToCamelCase() %>Schema.methods.createNewMany = createNewMany;
 <%
 // ==============
 // CREATE - END
