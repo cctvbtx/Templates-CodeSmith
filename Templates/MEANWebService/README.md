@@ -6,13 +6,16 @@
 Creates MEAN Stack CRUD API web service, and proxy libraries for connecting to that web service, from a SQL Server database (based on the standard express-generator).  This allows a model-first approach to creating MEAN Stack web services in that the modeling can be done through tools such as SQL Server Diagram Tool.  All features of the global templates are supported (non-destructive deletes, audit trails, etc.).
 
 ### Details
-Two folders are generated:
+Three folders are generated:
 
 #### %PROJECT_NAME%
 This is the main ExpressJS application.  All npm scripts are run from this folder.
 
 #### %PROJECT_NAME%.Proxies
 Resource files used by other projects for connecting to this ExpressJS application.  Adding these files to a separate project (for example, via SVN Externals) provides a consistent means of making API calls to this project.
+
+#### %PROJECT_NAME%.Services
+Stub files meant to contain business logic.  These files already contain references to the Proxy files and are meant to be deployed along side the Proxies as a resource for a sister project.
 
 ### Features
 
@@ -113,5 +116,5 @@ Please note that you will need to re-add this line to the `db.js` file if you pe
 
 ---
 
-Last updated: 4/2/2015 3:06:35 PM 
+Last updated: 4/2/2015 3:20:53 PM 
 
