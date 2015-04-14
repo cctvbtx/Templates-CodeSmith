@@ -118,6 +118,18 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         _DataIndex.BuildDate = buildDate;
         _DataIndex.RenderToFile(file, true);
 
+        outputDir = Path.Combine(buildPath, "public");
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+        
+        fileName = "favicon.ico";
+        if (!System.IO.File.Exists(Path.Combine(outputDir, fileName)))
+        {
+           var sourcePath = Path.Combine(this.CodeTemplateInfo.FullPath.Replace(this.CodeTemplateInfo.FileName, string.Empty), "Templates", "Common", "favicon.ico");
+           File.Copy(sourcePath, Path.Combine(outputDir, "favicon.ico"));
+        }
+
         outputDir = Path.Combine(buildPath, "config");
 
         if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }

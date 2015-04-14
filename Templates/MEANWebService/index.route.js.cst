@@ -50,6 +50,7 @@ Desc:
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
 <%@ Import Namespace="CodeSmith.Engine" %>
 /*jslint node: true */
+
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
 
 'use strict';
@@ -66,7 +67,7 @@ foreach(var owner in owners)
     var isDefaultOwner = (owner == defaultOwner);
     var tables = SourceDatabase.Tables.Where(x => x.Owner.Equals(owner, StringComparison.OrdinalIgnoreCase)).ToList();
     
-    var header = (isDefaultOwner ? "Default (No Schema)" : owner.ToSentence(' ', SentenceCase.Title)) + " (" + tables.Count + (tables.Count == 1 ? " table" : " tables") + ") - BEGIN";
+    var header = (isDefaultOwner ? "Default Owner (No Schema)" : owner.ToSentence(' ', SentenceCase.Title)) + " (" + tables.Count + (tables.Count == 1 ? " table" : " tables") + ") - BEGIN";
     var spacer = string.Empty.PadLeft(header.Length, '=');
 %>
 
