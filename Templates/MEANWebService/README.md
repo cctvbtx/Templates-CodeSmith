@@ -14,7 +14,7 @@ This is the main ExpressJS application.  All npm scripts are run from this folde
 #### %PROJECT_NAME%.Module
 Resource files used by other projects as stubs for AngularJS module and services.  Unlike the other subtemplates, where the table name is used to construct the object name, the module is generated one level higher using the table owner / schema name.
 
-- **Note:  Tables with the default owner name are skipped!**
+- **Note:  Only non-default owner names are generated!**
 
 #### %PROJECT_NAME%.Proxies
 Resource files used by other projects for connecting to this ExpressJS application.  Adding these files to a separate project (for example, via SVN Externals) provides a consistent means of making API calls to this project.
