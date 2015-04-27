@@ -68,11 +68,6 @@ var rootNav = CurrentTable.HasDefaultOnwer()
 
 var arrays = require('dzutils').arrays,
     config = require('<%= rootNav %>config'),
-    express = require('express'),
-    moment = require('moment'),
-    auth = require('<%= rootNav %>middlewares/common/authentication'),
-    logging = require('<%= rootNav %>middlewares/common/logging'),
-    routing = require('<%= rootNav %>middlewares/common/routing'),
     encryption = require('dzutils').encryption,
     internet = require('dzutils').internet,
     jwt = require('dzutils').jwt,
