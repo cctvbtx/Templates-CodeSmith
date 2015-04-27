@@ -1,4 +1,4 @@
-# MEAN Stack Web Service Template v0.3.1
+# MEAN Stack Web Service Template v0.3.2
 
 ## Summary
 
@@ -6,10 +6,15 @@
 Creates MEAN Stack CRUD API web service, and proxy libraries for connecting to that web service, from a SQL Server database (based on the standard express-generator).  This allows a model-first approach to creating MEAN Stack web services in that the modeling can be done through tools such as SQL Server Diagram Tool.  All features of the global templates are supported (non-destructive deletes, audit trails, etc.).
 
 ### Details
-Three folders are generated:
+One web service project and three resource projects are generated:
 
 #### %PROJECT_NAME%
 This is the main ExpressJS application.  All npm scripts are run from this folder.
+
+#### %PROJECT_NAME%.Module
+Resource files used by other projects as stubs for AngularJS module and services.  Unlike the other subtemplates, where the table name is used to construct the object name, the module is generated one level higher using the table owner / schema name.
+
+- **Note:  Tables with the default owner name are skipped!**
 
 #### %PROJECT_NAME%.Proxies
 Resource files used by other projects for connecting to this ExpressJS application.  Adding these files to a separate project (for example, via SVN Externals) provides a consistent means of making API calls to this project.
@@ -46,10 +51,12 @@ Generated code based runs in any environment supporting NodeJS.
 
 `npm install -g nodemon`
 
-**4.** Using CodeSmith Generator v7.0, generate the template.  This will generate two folders:
+**4.** Using CodeSmith Generator v7.0, generate the template.  This will generate four folders:
 
 `%PROJECT NAME%`  
-`%PROJECT NAME%.Proxies`
+`%PROJECT NAME%.Module`  (resource project)  
+`%PROJECT NAME%.Proxies`  (resource project)  
+`%PROJECT NAME%.Services`  (resource project)
 
 **5.** Change directory into the `%PROJECT NAME%` folder and install all required binaries using the following command: 
 
@@ -74,20 +81,7 @@ Once running two sets of URLs will be available:
 - Replace composite PK with unique constraint (currently skipping additional PK columns)  
 
 ## Bugs & Limitations
-One bug exists with relation to MongoDB and Mongoose.  After generating the templates, and running the app, Mongoose throws an error:
-
-    TypeError: Cannot read property 'length' of undefined.
-
-The file in question is:
-
-    <% App Dir %>\node_modules\mongoose\node_modules\mongodb\lib\mongodb\db.js
-    Line 1581, Column 31
-
-The problem appears to be with the variable "index" in the `db.js` file.  The problem has been reported to the MongoDB team.  The current workaround for this problem is to add the following line before the for loop:
-
-    indexes = indexes || [];
-
-Please note that you will need to re-add this line to the `db.js` file if you perform an `npm update`.
+None at this time.
 
 ## Updates
 ### v0.1.1
@@ -114,7 +108,10 @@ Please note that you will need to re-add this line to the `db.js` file if you pe
 ### v0.3.1
 - Added stub files for service operations.  These files call upon the proxy files added in v0.3.0.  As with the proxy files, these files are meant to be included as "externals" within a separate project.
 
+### v0.3.2
+- Added stub files for AngularJS module.  These files are meant to be included as "externals" within a separate project.
+
 ---
 
-Last updated: 4/2/2015 3:20:53 PM 
+Last updated: 4/27/2015 5:42:12 PM  
 

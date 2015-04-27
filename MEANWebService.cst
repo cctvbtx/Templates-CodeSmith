@@ -68,9 +68,12 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Register Name="Package" Template="Templates/MEANWebService/package.json.cst" %>
 <%@ Register Name="Www" Template="Templates/MEANWebService/www.js.cst" %>
 
+<%@ Register Name="AngularModule" Template="Templates/MEANWebService/angular_module.js.cst" %>
+
 <%-- ###########################################################################
      PER OWNER TEMPLATES
      ########################################################################### --%>
+<%@ Register Name="AngularService" Template="Templates/MEANWebService/angular_service.js.cst" %>
 <%@ Register Name="ProxyIndex" Template="Templates/MEANWebService/index.proxy.js.cst" %>
 <%@ Register Name="ServiceIndex" Template="Templates/MEANWebService/index.service.js.cst" %>
 
@@ -286,6 +289,23 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         _SeedIndexUtil.FileName = fileName;
         _SeedIndexUtil.BuildDate = buildDate;
         _SeedIndexUtil.RenderToFile(file, true);
+
+        
+        outputDir = buildPath + ".Module";
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+        fileName = "module.js";
+        if (!File.Exists(Path.Combine(outputDir, fileName)))
+        {
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            AngularModule _AngularModule = this.Create<AngularModule>();
+            this.CopyPropertiesTo(_AngularModule);
+            _AngularModule.FileName = fileName;
+            _AngularModule.BuildDate = buildDate;
+            _AngularModule.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
+        }
         
         return true;
     }
@@ -334,6 +354,26 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _ServiceIndex.BuildDate = buildDate;
             _ServiceIndex.CurrentOwner = owner;
             _ServiceIndex.RenderToFile(file, true);
+
+            if (owner != SourceDatabase.GetDefaultOwner())
+            {
+                outputDir = Path.Combine(buildPath + ".Module", "services");
+                
+                if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+                if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+                fileName = owner.ToHypehatedLowercase() + ".js";
+                if (!File.Exists(Path.Combine(outputDir, fileName)))
+                {
+                    file = new OutputFile(Path.Combine(outputDir, fileName));
+                    AngularService _AngularService = this.Create<AngularService>();
+                    this.CopyPropertiesTo(_AngularService);
+                    _AngularService.FileName = fileName;
+                    _AngularService.BuildDate = buildDate;
+                    _AngularService.CurrentOwner = owner;
+                    _AngularService.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
+                }
+            }
         }
 
         return true;
