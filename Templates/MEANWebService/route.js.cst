@@ -250,9 +250,9 @@ foreach (var column in columnsForCreate)
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && !req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+    if (!req.body.auditMemberId && !req.body.m) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
     var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>(),
-        auditUserId = req.body.auditUserId || req.body.u;
+        auditMemberId = req.body.auditMemberId || req.body.m;
 <%
 }
 else 
@@ -262,7 +262,7 @@ else
 <%
 }
 %>  
-    <%= CurrentTable.Name.ToCamelCase() %>Model.modifyMany(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, numberAffected, rawResponse) {
+    <%= CurrentTable.Name.ToCamelCase() %>Model.modifyMany(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditMemberId" : "") %>, function (err, numberAffected, rawResponse) {
         if (err) { throw err; }
         return res.send({ count: numberAffected, resp: rawResponse });
     });
@@ -275,9 +275,9 @@ else
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && !req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+    if (!req.body.auditMemberId && !req.body.m) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
     var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>(),
-        auditUserId = req.body.auditUserId || req.body.u;
+        auditMemberId = req.body.auditMemberId || req.body.m;
 <%
 }
 else 
@@ -287,7 +287,7 @@ else
 <%
 }
 %>
-    <%= CurrentTable.Name.ToCamelCase() %>Model.modifyOne(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, item) {
+    <%= CurrentTable.Name.ToCamelCase() %>Model.modifyOne(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditMemberId" : "") %>, function (err, item) {
         if (err && !item) { throw err; }
         if (err && item) { return res.send({ msg: err.message, id: item.id }); }
         return res.send({ id: item.id });
@@ -299,10 +299,10 @@ else
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && !req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+    if (!req.body.auditMemberId && !req.body.m) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
     var query = { id: req.params.id },
         <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>(),
-        auditUserId = req.body.auditUserId || req.body.u;
+        auditMemberId = req.body.auditMemberId || req.body.m;
 <%
 }
 else 
@@ -313,7 +313,7 @@ else
 <%
 }
 %>
-    <%= CurrentTable.Name.ToCamelCase() %>Model.modifyOne(query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, item) {
+    <%= CurrentTable.Name.ToCamelCase() %>Model.modifyOne(query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditMemberId" : "") %>, function (err, item) {
         if (err && !item) { throw err; }
         if (err && item) { return res.send({ msg: err.message, item: item }); }
         return res.send({});
@@ -353,9 +353,9 @@ else
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && !req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+    if (!req.body.auditMemberId && !req.body.m) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
     var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>(),
-        auditUserId = req.body.auditUserId || req.body.u;
+        auditMemberId = req.body.auditMemberId || req.body.m;
 <%
 }
 else 
@@ -365,7 +365,7 @@ else
 <%
 }
 %>  
-    <%= CurrentTable.Name.ToCamelCase() %>Model.deleteMany(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, numberAffected, rawResponse) {
+    <%= CurrentTable.Name.ToCamelCase() %>Model.deleteMany(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditMemberId" : "") %>, function (err, numberAffected, rawResponse) {
         if (err) { throw err; }
         return res.send({ count: numberAffected, resp: rawResponse });
     });
@@ -378,9 +378,9 @@ else
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && !req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+    if (!req.body.auditMemberId && !req.body.m) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
     var <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>(),
-        auditUserId = req.body.auditUserId || req.body.u;
+        auditMemberId = req.body.auditMemberId || req.body.m;
 <%
 }
 else 
@@ -390,7 +390,7 @@ else
 <%
 }
 %>
-    <%= CurrentTable.Name.ToCamelCase() %>Model.deleteOne(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, item) {
+    <%= CurrentTable.Name.ToCamelCase() %>Model.deleteOne(req.body.query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditMemberId" : "") %>, function (err, item) {
         if (err && !item) { throw err; }
         if (err && item) { return res.send({ msg: err.message, id: item.id }); }
         return res.send({ id: item.id });
@@ -402,10 +402,10 @@ else
 if (CurrentTable.HasVersionUserColumn())
 {
 %>
-    if (!req.body.auditUserId && !req.body.u) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
+    if (!req.body.auditMemberId && !req.body.m) { return res.status(400).send({ msg: 'Reuqesting user id not supplied' }); }
     var query = { id: req.params.id },
         <%= CurrentTable.Name.ToCamelCase() %>Model = new <%= CurrentTable.Name.ToPlural().ToPascalCase() %>(),
-        auditUserId = req.body.auditUserId || req.body.u;
+        auditMemberId = req.body.auditMemberId || req.body.m;
 <%
 }
 else 
@@ -416,7 +416,7 @@ else
 <%
 }
 %>
-    <%= CurrentTable.Name.ToCamelCase() %>Model.deleteOne(query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditUserId" : "") %>, function (err, item) {
+    <%= CurrentTable.Name.ToCamelCase() %>Model.deleteOne(query, req.body.update<%= (CurrentTable.HasVersionUserColumn() ? ", auditMemberId" : "") %>, function (err, item) {
         if (err && !item) { throw err; }
         if (err && item) { return res.send({ msg: err.message, item: item }); }
         return res.send({});
