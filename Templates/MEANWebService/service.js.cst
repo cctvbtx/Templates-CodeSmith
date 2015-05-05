@@ -75,13 +75,6 @@ var arrays = require('dzutils').arrays,
     uuids = require('dzutils').uuids,
     <%= ProjectName.ToCamelCase() %> = require('<%= rootNav %>proxies/<%= ProjectName.ToHypehatedLowercase() %>');
 
-var isValidId = function (id, callback) {
-    <%= ProjectName.ToCamelCase() %><%= CurrentTable.HasDefaultOnwer() ? "" : "." + CurrentTable.Owner.ToCamelCase() %>.<%= CurrentTable.Name.ToPlural().ToCamelCase() %>.getById(id, function (err, item) {
-        if (err) { return callback(err); }
-        if (item) { return callback(null, true); } else { return callback(null, false); }
-    })
-};
-
 module.exports = {
-    isValidId: isValidId
+    proxy: <%= ProjectName.ToCamelCase() %><%= CurrentTable.HasDefaultOnwer() ? "" : "." + CurrentTable.Owner.ToCamelCase() %>.<%= CurrentTable.Name.ToPlural().ToCamelCase() %>
 };

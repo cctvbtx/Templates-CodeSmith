@@ -346,6 +346,7 @@ var toItemsFull = function (dtos) {
 operations.Add("getAll");
 operations.Add("getById");
 operations.Add("getByIds");
+operations.Add("isValidId");
 %>
 
 var getAll = function (callback) {
@@ -384,6 +385,13 @@ var getByIds = function (ids, callback) {
         if (err) { return callback(err); }
         if (!body || !body.items) { console.log("not returned"); return callback(); }
         return callback(null, toItems(body.items));
+    });
+};
+
+var isValidId = function (id, callback) {
+    getById(id, function (err, item) {
+        if (err) { return callback(err); }
+        return callback(null, !!item);
     });
 };
 <%
