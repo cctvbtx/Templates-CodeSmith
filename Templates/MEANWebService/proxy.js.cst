@@ -82,6 +82,7 @@ var CONFIG_PATH = '<%= (CurrentTable.HasDefaultOnwer() ? "" : "../") %>../../con
 var async = require('async'),
     config = require(CONFIG_PATH),
     dates = require('dzutils').dates,
+    numbers = require('dzutils').numbers,
     request = require('request-json'),
     strings = require('dzutils').strings,
     uids = require('dzutils').uuids,
