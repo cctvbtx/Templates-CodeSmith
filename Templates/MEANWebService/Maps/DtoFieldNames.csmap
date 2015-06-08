@@ -113,5 +113,21 @@
       <key>AbbreviationPlural</key>
       <value>abvp</value>
     </item>
+    <item>
+      <key>AuditUserId</key>
+      <value>m</value>
+    </item>
+    <item>
+      <key>PublicUid</key>
+      <value>u</value>
+    </item>
+    <item>
+      <key>EnumName</key>
+      <value>enm</value>
+    </item>
+    <item>
+      <key>DisplayName</key>
+      <value>dnm</value>
+    </item>
   </map>
 </codeSmith>
