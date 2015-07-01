@@ -1,4 +1,4 @@
-# MEAN Stack Web Service Template v0.3.2
+# MEAN Stack Web Service Template v0.3.3
 
 ## Summary
 
@@ -6,10 +6,15 @@
 Creates MEAN Stack CRUD API web service, and proxy libraries for connecting to that web service, from a SQL Server database (based on the standard express-generator).  This allows a model-first approach to creating MEAN Stack web services in that the modeling can be done through tools such as SQL Server Diagram Tool.  All features of the global templates are supported (non-destructive deletes, audit trails, etc.).
 
 ### Details
-One web service project and three resource projects are generated:
+One web service project and four resource projects are generated:
 
 #### %PROJECT_NAME%
-This is the main ExpressJS application.  All npm scripts are run from this folder.
+This is the main API application built on top of ExpressJS.  All npm scripts are run from this folder.
+
+- **Note: The following folders are intended to be included in a separate project (for example, via SVN Externals) to connect back to the main API application.**
+
+#### %PROJECT_NAME%.Business
+Stub files meant to contain multi-step or over-reaching business logic.  Business operations call upon the service libraries.  The goal of these files is to provide higher-level operations which generally span multiple smaller service operations.
 
 #### %PROJECT_NAME%.Module
 Resource files used by other projects as stubs for AngularJS module and services.  Unlike the other subtemplates, where the table name is used to construct the object name, the module is generated one level higher using the table owner / schema name.
@@ -17,7 +22,7 @@ Resource files used by other projects as stubs for AngularJS module and services
 - **Note:  Only non-default owner names are generated!**
 
 #### %PROJECT_NAME%.Proxies
-Resource files used by other projects for connecting to this ExpressJS application.  Adding these files to a separate project (for example, via SVN Externals) provides a consistent means of making API calls to this project.
+Resource files used by other projects for connecting to this ExpressJS application.  Generally, only the Service libraries will ever call the proxy libraries, however each service file does have a proxy instance variable for convenience.
 
 #### %PROJECT_NAME%.Services
 Stub files meant to contain business logic.  These files already contain references to the Proxy files and are meant to be deployed along side the Proxies as a resource for a sister project.
@@ -51,16 +56,17 @@ Generated code based runs in any environment supporting NodeJS.
 
 `npm install -g nodemon`
 
-**4.** Using CodeSmith Generator v7.0, generate the template.  This will generate four folders:
+**4.** Using CodeSmith Generator v7.0, generate the template.  This will generate five folders:
 
 `%PROJECT NAME%`  
+`%PROJECT NAME%.Business`  (resource project)  
 `%PROJECT NAME%.Module`  (resource project)  
 `%PROJECT NAME%.Proxies`  (resource project)  
 `%PROJECT NAME%.Services`  (resource project)
 
 **5.** Change directory into the `%PROJECT NAME%` folder and install all required binaries using the following command: 
 
-`npm install`
+`npm install` or `sudo npm install`
 
 **6.** Initialize the web server using the following command.
 
@@ -111,7 +117,10 @@ None at this time.
 ### v0.3.2
 - Added stub files for AngularJS module.  These files are meant to be included as "externals" within a separate project.
 
+### v0.3.3
+- Added stub files for business operations.  These files are meant to be included as "externals" within a separate project.  **Needs to be rethought.**
+
 ---
 
-Last updated: 4/27/2015 5:42:12 PM  
+Last updated: 7/1/2015 4:55:43 PM     
 

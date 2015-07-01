@@ -75,6 +75,8 @@ var arrays = require('dzutils').arrays,
     uuids = require('dzutils').uuids,
     <%= ProjectName.ToCamelCase() %> = require('<%= rootNav %>proxies/<%= ProjectName.ToHypehatedLowercase() %>');
 
+var svcs = require('../../../services');
+
 module.exports = {
     proxy: <%= ProjectName.ToCamelCase() %><%= CurrentTable.HasDefaultOnwer() ? "" : "." + CurrentTable.Owner.ToCamelCase() %>.<%= CurrentTable.Name.ToPlural().ToCamelCase() %>
 };

@@ -2,6 +2,26 @@
 <codeSmith xmlns="http://www.codesmithtools.com/schema/csmap.xsd">
   <map caseSensitive="false" returnKeyWhenNotFound="true">
     <item>
+      <key>Abbreviation</key>
+      <value>abv</value>
+    </item>
+    <item>
+      <key>AbbreviationPlural</key>
+      <value>abvp</value>
+    </item>
+    <item>
+      <key>AbbreviationSingular</key>
+      <value>abvs</value>
+    </item>
+    <item>
+      <key>AccountId</key>
+      <value>aid</value>
+    </item>
+    <item>
+      <key>ApplicationId</key>
+      <value>aid</value>
+    </item>
+    <item>
       <key>AuditDeletedDate</key>
       <value>_k</value>
     </item>
@@ -14,11 +34,67 @@
       <value>_m</value>
     </item>
     <item>
+      <key>AuditUserId</key>
+      <value>_m</value>
+    </item>
+    <item>
       <key>AuditVersionDate</key>
       <value>_v</value>
     </item>
     <item>
+      <key>BirthCity</key>
+      <value>bci</value>
+    </item>
+    <item>
+      <key>BirthCityCode</key>
+      <value>bci</value>
+    </item>
+    <item>
+      <key>BirthCountry</key>
+      <value>bco</value>
+    </item>
+    <item>
+      <key>BirthCountryCode</key>
+      <value>bco</value>
+    </item>
+    <item>
+      <key>BirthDate</key>
+      <value>bdt</value>
+    </item>
+    <item>
+      <key>BirthMonth</key>
+      <value>bmo</value>
+    </item>
+    <item>
+      <key>BirthState</key>
+      <value>bst</value>
+    </item>
+    <item>
+      <key>BirthStateCode</key>
+      <value>bst</value>
+    </item>
+    <item>
+      <key>BirthYear</key>
+      <value>byr</value>
+    </item>
+    <item>
+      <key>Change</key>
+      <value>chg</value>
+    </item>
+    <item>
+      <key>CityCode</key>
+      <value>cico</value>
+    </item>
+    <item>
       <key>Code</key>
+      <value>co</value>
+    </item>
+    <item>
+      <key>ConfCode</key>
+      <value>cco</value>
+    </item>
+    <item>
+      <key>ConfirmationCode</key>
       <value>co</value>
     </item>
     <item>
@@ -26,12 +102,32 @@
       <value>cord</value>
     </item>
     <item>
+      <key>Copyright</key>
+      <value>cpy</value>
+    </item>
+    <item>
       <key>CountryCode</key>
       <value>coco</value>
     </item>
     <item>
+      <key>DateCompleted</key>
+      <value>com</value>
+    </item>
+    <item>
+      <key>DateConfirmed</key>
+      <value>con</value>
+    </item>
+    <item>
+      <key>DateExpiry</key>
+      <value>exp</value>
+    </item>
+    <item>
       <key>DateReplaced</key>
       <value>rep</value>
+    </item>
+    <item>
+      <key>DateRequested</key>
+      <value>req</value>
     </item>
     <item>
       <key>DateStamp</key>
@@ -42,28 +138,176 @@
       <value>desc</value>
     </item>
     <item>
+      <key>DisplayName</key>
+      <value>dnm</value>
+    </item>
+    <item>
+      <key>DomainId</key>
+      <value>did</value>
+    </item>
+    <item>
+      <key>EmailAddressId</key>
+      <value>eid</value>
+    </item>
+    <item>
+      <key>EmailAddressUid</key>
+      <value>eid</value>
+    </item>
+    <item>
+      <key>EntityId</key>
+      <value>eid</value>
+    </item>
+    <item>
+      <key>EntityUid</key>
+      <value>eid</value>
+    </item>
+    <item>
+      <key>EnumName</key>
+      <value>enm</value>
+    </item>
+    <item>
+      <key>FirstName</key>
+      <value>fnm</value>
+    </item>
+    <item>
+      <key>FormalName</key>
+      <value>nmf</value>
+    </item>
+    <item>
       <key>FunctionCode</key>
       <value>fuco</value>
+    </item>
+    <item>
+      <key>GenderCode</key>
+      <value>gco</value>
+    </item>
+    <item>
+      <key>GenderName</key>
+      <value>gnm</value>
     </item>
     <item>
       <key>Id</key>
       <value>_id</value>
     </item>
     <item>
+      <key>Identifier</key>
+      <value>ident</value>
+    </item>
+    <item>
+      <key>IsAdmin</key>
+      <value>isa</value>
+    </item>
+    <item>
+      <key>IsCanceled</key>
+      <value>isc</value>
+    </item>
+    <item>
+      <key>IsOwner</key>
+      <value>iso</value>
+    </item>
+    <item>
+      <key>IsSetNameRequired</key>
+      <value>fn</value>
+    </item>
+    <item>
+      <key>IsSetPassRequired</key>
+      <value>fp</value>
+    </item>
+    <item>
+      <key>LastName</key>
+      <value>lnm</value>
+    </item>
+    <item>
       <key>LocationCode</key>
       <value>loco</value>
+    </item>
+    <item>
+      <key>MemberId</key>
+      <value>mid</value>
+    </item>
+    <item>
+      <key>MiddleName</key>
+      <value>mnm</value>
     </item>
     <item>
       <key>Name</key>
       <value>nm</value>
     </item>
     <item>
+      <key>NameFormal</key>
+      <value>nmf</value>
+    </item>
+    <item>
+      <key>NamePlural</key>
+      <value>nmp</value>
+    </item>
+    <item>
+      <key>NamePrefixId</key>
+      <value>npid</value>
+    </item>
+    <item>
+      <key>NameSingular</key>
+      <value>nms</value>
+    </item>
+    <item>
+      <key>NameSuffixId</key>
+      <value>nsid</value>
+    </item>
+    <item>
       <key>NameWoDiacritics</key>
       <value>nmwod</value>
     </item>
     <item>
+      <key>OrganizationId</key>
+      <value>oid</value>
+    </item>
+    <item>
+      <key>PassHash</key>
+      <value>ph</value>
+    </item>
+    <item>
+      <key>PassSalt</key>
+      <value>ps</value>
+    </item>
+    <item>
+      <key>PersonId</key>
+      <value>pid</value>
+    </item>
+    <item>
+      <key>Priority</key>
+      <value>p</value>
+    </item>
+    <item>
+      <key>PublicUid</key>
+      <value>_u</value>
+    </item>
+    <item>
       <key>Remarks</key>
       <value>rem</value>
+    </item>
+    <item>
+      <key>RequestingMemberId</key>
+      <value>mid</value>
+    </item>
+    <item>
+      <key>RoleId</key>
+      <value>rid</value>
+    </item>
+    <item>
+      <key>RoleName</key>
+      <value>rnm</value>
+    </item>
+    <item>
+      <key>SourceId</key>
+      <value>sid</value>
+    </item>
+    <item>
+      <key>SourceName</key>
+      <value>snm</value>
+    </item>
+    <item>
+      <key>StateCode</key>
+      <value>stco</value>
     </item>
     <item>
       <key>StatusCode</key>
@@ -74,6 +318,22 @@
       <value>suco</value>
     </item>
     <item>
+      <key>Text</key>
+      <value>txt</value>
+    </item>
+    <item>
+      <key>TypeCode</key>
+      <value>tco</value>
+    </item>
+    <item>
+      <key>TypeId</key>
+      <value>tid</value>
+    </item>
+    <item>
+      <key>TypeName</key>
+      <value>tnm</value>
+    </item>
+    <item>
       <key>Version</key>
       <value>ver</value>
     </item>
@@ -82,52 +342,20 @@
       <value>ver</value>
     </item>
     <item>
-      <key>Change</key>
-      <value>chg</value>
+      <key>OrganizationUid</key>
+      <value>oid</value>
     </item>
     <item>
-      <key>Abbreviation</key>
-      <value>abv</value>
+      <key>ApplicationVersionId</key>
+      <value>vid</value>
     </item>
     <item>
-      <key>NameSingular</key>
-      <value>nms</value>
+      <key>DateCreated</key>
+      <value>beg</value>
     </item>
     <item>
-      <key>NamePlural</key>
-      <value>nmp</value>
-    </item>
-    <item>
-      <key>NameFormal</key>
-      <value>nmf</value>
-    </item>
-    <item>
-      <key>FormalName</key>
-      <value>nmf</value>
-    </item>
-    <item>
-      <key>AbbreviationSingular</key>
-      <value>abvs</value>
-    </item>
-    <item>
-      <key>AbbreviationPlural</key>
-      <value>abvp</value>
-    </item>
-    <item>
-      <key>AuditUserId</key>
-      <value>_m</value>
-    </item>
-    <item>
-      <key>PublicUid</key>
-      <value>_u</value>
-    </item>
-    <item>
-      <key>EnumName</key>
-      <value>enm</value>
-    </item>
-    <item>
-      <key>DisplayName</key>
-      <value>dnm</value>
+      <key>DateEnded</key>
+      <value>end</value>
     </item>
   </map>
 </codeSmith>
