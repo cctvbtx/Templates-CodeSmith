@@ -357,5 +357,9 @@
       <key>DateEnded</key>
       <value>end</value>
     </item>
+    <item>
+      <key>PersonUid</key>
+      <value>pid</value>
+    </item>
   </map>
 </codeSmith>

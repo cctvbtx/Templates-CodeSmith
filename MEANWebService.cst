@@ -367,13 +367,16 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
 
             fileName = "index.js";
-            file = new OutputFile(Path.Combine(outputDir, fileName));
-            ServiceIndex _ServiceIndex = this.Create<ServiceIndex>();
-            this.CopyPropertiesTo(_ServiceIndex);
-            _ServiceIndex.FileName = fileName;
-            _ServiceIndex.BuildDate = buildDate;
-            _ServiceIndex.CurrentOwner = owner;
-            _ServiceIndex.RenderToFile(file, true);
+            if (!File.Exists(Path.Combine(outputDir, fileName)))
+            {
+                file = new OutputFile(Path.Combine(outputDir, fileName));
+                ServiceIndex _ServiceIndex = this.Create<ServiceIndex>();
+                this.CopyPropertiesTo(_ServiceIndex);
+                _ServiceIndex.FileName = fileName;
+                _ServiceIndex.BuildDate = buildDate;
+                _ServiceIndex.CurrentOwner = owner;
+                _ServiceIndex.RenderToFile(file, false);
+            }
             
             if (owner != SourceDatabase.GetDefaultOwner())
             {
