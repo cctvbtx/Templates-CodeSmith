@@ -81,11 +81,8 @@ var CONFIG_PATH = '<%= (CurrentTable.HasDefaultOnwer() ? "" : "../") %>../../con
 
 var async = require('async'),
     config = require(CONFIG_PATH),
-    dates = require('dzutils').dates,
-    numbers = require('dzutils').numbers,
+    dz = require('dzutils'),
     request = require('request-json'),
-    strings = require('dzutils').strings,
-    uids = require('dzutils').uuids,
     util = require('util');
     
 var BASE_URL = config.proxies.<%= ProjectName %>.url,

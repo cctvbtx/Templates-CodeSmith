@@ -60,23 +60,70 @@ Desc:
 var rootNav = CurrentTable.HasDefaultOnwer()
     ? "../../"
     : "../../../";
+
+var siblingOwners = SourceDatabase.GetOwners().Where(x => !x.Equals(CurrentTable.Owner, StringComparison.OrdinalIgnoreCase)).ToList();
+var siblingTables = SourceDatabase.Tables.Where(x => x.Owner.Equals(CurrentTable.Owner, StringComparison.OrdinalIgnoreCase) && 
+                                                     !x.Name.Equals(CurrentTable.Name, StringComparison.OrdinalIgnoreCase)).ToList();
 %>
 /*jslint node: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
 
 'use strict';
 
-var arrays = require('dzutils').arrays,
-    config = require('<%= rootNav %>config'),
-    encryption = require('dzutils').encryption,
-    internet = require('dzutils').internet,
-    jwt = require('dzutils').jwt,
-    strings = require('dzutils').strings,
-    uuids = require('dzutils').uuids,
-    <%= ProjectName.ToCamelCase() %> = require('<%= rootNav %>proxies/<%= ProjectName.ToHypehatedLowercase() %>');
+// region Variables
 
-var svcs = require('../../../services');
+var dz = require('dzutils'),
+    config = require('<%= rootNav %>config'),
+    proxy = require('<%= rootNav %>proxies/<%= ProjectName.ToHypehatedLowercase() %>');
+
+<%
+if (siblingOwners.Count() < 1) 
+{
+%>
+// Sibling Namespaces (no others)
+<%    
+}
+else
+{
+%>
+// Sibling Namespaces (<%= siblingOwners.Count %> <%= siblingOwners.Count == 1 ? "other" : "others" %>)
+<%
+    foreach (var siblingOwner in siblingOwners)
+    {
+        var prefix = siblingOwner == siblingOwners.First() ? "var " : "    ";
+        var suffix = siblingOwner == siblingOwners.Last() ? ";" : ",";
+%>
+<%= prefix %><%= siblingOwner.ToCamelCase() %> = require('../<%= siblingOwner.ToHypehatedLowercase() %>')<%= suffix %>
+<%
+    }
+}
+%>
+
+<%
+if (siblingTables.Count < 1) 
+{
+%>
+// Sibling Repos (no others)
+<%    
+}
+else
+{
+%>
+// Sibling Repos (<%= siblingTables.Count %> <%= siblingTables.Count == 1 ? "other" : "others" %>)
+<%
+    foreach (var siblingTable in siblingTables)
+    {
+        var prefix = siblingTable == siblingTables.First() ? "var " : "    ";
+        var suffix = siblingTable == siblingTables.Last() ? ";" : ",";
+%>
+<%= prefix %><%= siblingTable.Name.ToPlural().ToCamelCase() %> = require('./<%= siblingTable.Name.ToHypehatedLowercase() %>.service')<%= suffix %>
+<%
+    }
+}
+%>
+
+// endregion
 
 module.exports = {
-    proxy: <%= ProjectName.ToCamelCase() %><%= CurrentTable.HasDefaultOnwer() ? "" : "." + CurrentTable.Owner.ToCamelCase() %>.<%= CurrentTable.Name.ToPlural().ToCamelCase() %>
+    proxy: proxy<%= CurrentTable.HasDefaultOnwer() ? "" : "." + CurrentTable.Owner.ToCamelCase() %>.<%= CurrentTable.Name.ToPlural().ToCamelCase() %>
 };
