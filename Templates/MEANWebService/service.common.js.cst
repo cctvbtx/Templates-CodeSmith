@@ -66,6 +66,7 @@ var rootNav = isDefaultOwner
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
 
 // COMMON: CONTAINS OVER-REACHING OPERATIONS WITHIN THIS NAMESPACE ONLY!
+// IMPORTANT: DO NOT EXPOSE REPOSITORY SERVICES OR NAMESPACES FROM HERE!
 
 'use strict';
 
@@ -80,11 +81,18 @@ foreach (var table in tables)
     names.Add(table.Name);
 }
 
-if (tables.Count() > 0)
+if (names.Count() < 1)
 {
 %>
 
-// Local use only.  Do not the repository services from the common service!
+// Repositories (none)
+<%
+}
+else
+{
+%>
+
+// Repositories (<%= names.Count() %> total)
 <%
     foreach (var name in names)
     {
@@ -92,6 +100,43 @@ if (tables.Count() > 0)
         var suffix = name == names.Last() ? ";" : ",";
 %>
 <%= prefix %><%= name.ToPlural().ToCamelCase() %> = require('./<%= name.ToHypehatedLowercase() %>.service')<%= suffix %>
+<%
+    }
+}
+
+names.Clear();
+foreach (var owner in SourceDatabase.GetOwners())
+{
+    if (SourceDatabase.Tables.Where(x => x.Owner.Equals(owner)).Count() > 0)
+    {
+        names.Add(owner);
+    }
+}
+names.Sort();
+
+if (SourceDatabase.GetDefaultOwner().Equals(CurrentOwner, StringComparison.OrdinalIgnoreCase))
+{
+    if (names.Count < 1)
+    {
+%>
+
+// Namespaces (none)
+<%
+    }
+    else
+    {
+%>
+
+// Namespaces (<%= names.Count() %> total)
+<%
+    }
+
+    foreach (var name in names)
+    {
+        var prefix = name == names.First() ? "var " : "    ";
+        var suffix = name == names.Last() ? ";" : ",";
+%>
+<%= prefix %><%= name.ToCamelCase() %> = require('./<%= name.ToHypehatedLowercase() %>')<%= suffix %>
 <%
     }
 }

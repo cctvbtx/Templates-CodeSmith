@@ -1,4 +1,4 @@
-# MEAN Stack Web Service Template v0.4.0
+# MEAN Stack Web Service Template v0.4.1
 
 ## Summary
 
@@ -130,10 +130,11 @@ None at this time.
 ### v0.3.3
 - Added stub files for business operations.  These files are meant to be included as "externals" within a separate project.  **Needs to be rethought.**
 
-### v0.4.0
+### v0.4.0 - v0.4.1
 - Flushed out Business & Service classes to provide for over-reaching operations.
 
 ---
 
-Last updated: 7/28/2015 8:38:31 PM      
+Last updated: 7/29/2015 11:39:02 AM 
+      
 
