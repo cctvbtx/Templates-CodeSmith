@@ -1,4 +1,4 @@
-# MEAN Stack Web Service Template v0.3.3
+# MEAN Stack Web Service Template v0.4.0
 
 ## Summary
 
@@ -77,6 +77,16 @@ Once running two sets of URLs will be available:
 `http://%FQDN%:%PORT%`  (shows the index placeholder page)  
 `http://%FQDN%:%PORT%/api/%OBJECT-NAME%`  (common RESTful paths used at this point)  
 
+#### Dependencies & Master Project Setup
+Most of the folders generated are meant to be used within a second project, known as the "Master Project."  Within a system like Subversion (aka "SVN") this is generally done through Externals.  There are four dependent NPM projects which must be added to the master project.  To install these, execute the following command:
+
+`npm install --save dzutils moment async request-json` 
+
+**or**
+
+`sudo npm install --save dzutils moment async request-json`
+
+
 ## Deviations
 - Only UID and char (String) data types are used for keys.  Fixed length char fields, from SQL Server, are converted to String keys and must be supplied during any create operation.  All other types (ie. uniqueidentifier, bigint, int, etc.) are converted to String fields and automatically populated with a random UID during create.
 
@@ -120,7 +130,10 @@ None at this time.
 ### v0.3.3
 - Added stub files for business operations.  These files are meant to be included as "externals" within a separate project.  **Needs to be rethought.**
 
+### v0.4.0
+- Flushed out Business & Service classes to provide for over-reaching operations.
+
 ---
 
-Last updated: 7/1/2015 4:55:43 PM     
+Last updated: 7/28/2015 8:38:31 PM      
 

@@ -33,7 +33,7 @@ Desc:
 
 <%-- Local Properties --%>
 <%@ Property Name="FileName" Type="System.String" Optional="True" %>
-<%@ Property Name="CurrentTable" Type="TableSchema" Optional="True" %>
+<%@ Property Name="CurrentOwner" Type="System.String" Optional="True" %>
 <%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
 
 <%@ Map Name="DefaultsDelFlag" Src="Maps\DefaultsDelFlag.csmap" %>
@@ -56,24 +56,15 @@ Desc:
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
-<%
-var rootNav = CurrentTable.HasDefaultOnwer()
-    ? "../../"
-    : "../../../";
-%>
 /*jslint node: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
 
 'use strict';
 
-var arrays = require('dzutils').arrays,
-    config = require('<%= rootNav %>config'),
-    encryption = require('dzutils').encryption,
-    internet = require('dzutils').internet,
-    jwt = require('dzutils').jwt,
-    strings = require('dzutils').strings,
-    uuids = require('dzutils').uuids,
-    <%= ProjectName.ToCamelCase() %> = require('<%= rootNav %>services/<%= ProjectName.ToHypehatedLowercase() %>');
+var dz = require('dzutils'),
+    config = require('../../config'),
+    svc = require('../../services/<%= ProjectName.ToHypehatedLowercase() %>');
 
 module.exports = {
+    service: svc
 };

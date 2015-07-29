@@ -361,5 +361,25 @@
       <key>PersonUid</key>
       <value>pid</value>
     </item>
+    <item>
+      <key>IsMemberEmailAddressRequired</key>
+      <value>reqeml</value>
+    </item>
+    <item>
+      <key>IsMemberIdentityRequired</key>
+      <value>reqmid</value>
+    </item>
+    <item>
+      <key>IsAccountRequired</key>
+      <value>reqacct</value>
+    </item>
+    <item>
+      <key>IsAccountIdentityRequired</key>
+      <value>reqaid</value>
+    </item>
+    <item>
+      <key>IsSecurePortRequired</key>
+      <value>reqssl</value>
+    </item>
   </map>
 </codeSmith>

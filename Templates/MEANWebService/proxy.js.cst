@@ -129,26 +129,26 @@ foreach (var column in CurrentTable.Columns)
             {
                 if (column.IsFixedLength())
                 {
-                    text = text.Replace("{1}", "!strings.isAlphanumeric" + (column.AllowDBNull ? "OrNull" : string.Empty));
+                    text = text.Replace("{1}", "!dz.strings.isAlphanumeric" + (column.AllowDBNull ? "OrNull" : string.Empty));
                 }
                 else
                 {
-                    text = text.Replace("{1}", "!uids.isIdentifier" + (column.AllowDBNull ? "OrNull" : string.Empty));
+                    text = text.Replace("{1}", "!dz.uuids.isIdentifier" + (column.AllowDBNull ? "OrNull" : string.Empty));
                 }
             }
             else
             {
-                text = text.Replace("{1}", "!strings.isValidString" + (column.AllowDBNull ? "OrNull" : string.Empty));
+                text = text.Replace("{1}", "!dz.strings.isValidString" + (column.AllowDBNull ? "OrNull" : string.Empty));
             }
-            text = text.Replace("{5}", " else { strings.trimToNull(item." + column.Name.ToCamelCase() + "); }");
+            text = text.Replace("{5}", " else { dz.strings.trimToNull(item." + column.Name.ToCamelCase() + "); }");
             break;
         case "Date":
         case "Number":
-            text = text.Replace("{1}", "!" + typeName.ToLower() + "s.is" + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
+            text = text.Replace("{1}", "!dz." + typeName.ToLower() + "s.is" + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
             text = text.Replace("{5}", string.Empty);
             break;
         case "Boolean":
-            text = text.Replace("{1}", "!strings.is" + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
+            text = text.Replace("{1}", "!dz.strings.is" + SqlToMongoose[column.NativeType] + (column.AllowDBNull ? "OrNull" : string.Empty));
             text = text.Replace("{5}", string.Empty);
             break;
         default:
@@ -358,7 +358,7 @@ var getAll = function (callback) {
 };
 
 var getById = function (id, callback) {
-    if (!<%= CurrentTable.PrimaryKey.MemberColumns[0].IsFixedLength() ? "strings.isValidString" : "uids.isIdentifier" %>(id)) { return callback(new Error('Invalid id')); }
+    if (!<%= CurrentTable.PrimaryKey.MemberColumns[0].IsFixedLength() ? "dz.strings.isValidString" : "dz.uuids.isIdentifier" %>(id)) { return callback(new Error('Invalid id')); }
     var client = request.createClient(BASE_URL),
         url = URL_PATH + '/' + id;
     client.get(url, function (err, res, body) {
@@ -373,7 +373,7 @@ var getByIds = function (ids, callback) {
     if (!ids || !util.isArray(ids)) { return callback(new Error('No IDs supplied')); }
     var i;
     for (i = 0; i < ids.length; i += 1) {
-        if (!<%= CurrentTable.PrimaryKey.MemberColumns[0].IsFixedLength() ? "strings.isValidString" : "uids.isIdentifier" %>(ids[i])) { return callback(new Error('Invalid ID detected')); }
+        if (!<%= CurrentTable.PrimaryKey.MemberColumns[0].IsFixedLength() ? "dz.strings.isValidString" : "dz.uuids.isIdentifier" %>(ids[i])) { return callback(new Error('Invalid ID detected')); }
     }
     var client = request.createClient(BASE_URL),
         data = { ids: ids },
@@ -594,7 +594,7 @@ foreach (var column in columnsForCreate)
         var response = {
             id: (body && body.id ? body.id : null)
         };
-        if (body && strings.notNullOrWhiteSpace(body.msg)) { response.msg = body.msg; }
+        if (body && dz.strings.notNullOrWhiteSpace(body.msg)) { response.msg = body.msg; }
         return callback(null, response);
     });
 };

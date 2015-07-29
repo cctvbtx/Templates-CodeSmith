@@ -58,6 +58,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Register Name="WwwIndex" Template="Templates/MEANWebService/index.www.js.cst" %>
 <%@ Register Name="SeedIndex" Template="Templates/MEANWebService/index.seed.js.cst" %>
 <%@ Register Name="SeedIndexUtil" Template="Templates/MEANWebService/index.seed.util.js.cst" %>
+<%@ Register Name="ServiceCommon" Template="Templates/MEANWebService/service.common.js.cst" %>
 
 <%@ Register Name="Production" Template="Templates/MEANWebService/production.js.cst" %>
 <%@ Register Name="Development" Template="Templates/MEANWebService/development.js.cst" %>
@@ -309,6 +310,20 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _AngularModule.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
         }
         
+        
+        outputDir = buildPath + ".Business";
+        
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+        fileName = "index.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        BusinessIndex _BusinessIndex = this.Create<BusinessIndex>();
+        this.CopyPropertiesTo(_BusinessIndex);
+        _BusinessIndex.FileName = fileName;
+        _BusinessIndex.BuildDate = buildDate;
+        _BusinessIndex.RenderToFile(file, true);
+        
         return true;
     }
     private bool renderPerOwnerTemplates(string buildPath, DateTime buildDate)
@@ -342,21 +357,21 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _ProxyIndex.RenderToFile(file, true);
 
             
-            outputDir = owner.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)
-                ? Path.Combine(buildPath + ".Business")
-                : Path.Combine(buildPath + ".Business", owner.ToHypehatedLowercase());
-            
+            outputDir = buildPath + ".Business";
+
             if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
             if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
 
-            fileName = "index.js";
-            file = new OutputFile(Path.Combine(outputDir, fileName));
-            BusinessIndex _BusinessIndex = this.Create<BusinessIndex>();
-            this.CopyPropertiesTo(_BusinessIndex);
-            _BusinessIndex.FileName = fileName;
-            _BusinessIndex.BuildDate = buildDate;
-            _BusinessIndex.CurrentOwner = owner;
-            _BusinessIndex.RenderToFile(file, true);
+            fileName = owner.ToHypehatedLowercase() + ".business.js";
+            if (!File.Exists(Path.Combine(outputDir, fileName)) && SourceDatabase.Tables.Where(x => x.Owner.Equals(owner, StringComparison.OrdinalIgnoreCase)).ToList().Count() > 0) {
+                file = new OutputFile(Path.Combine(outputDir, fileName));
+                Business _Business = this.Create<Business>();
+                this.CopyPropertiesTo(_Business);
+                _Business.FileName = fileName;
+                _Business.BuildDate = buildDate;
+                _Business.CurrentOwner = owner;
+                _Business.RenderToFile(file, false);
+            }
             
 
             outputDir = owner.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)
@@ -367,16 +382,26 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
 
             fileName = "index.js";
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            ServiceIndex _ServiceIndex = this.Create<ServiceIndex>();
+            this.CopyPropertiesTo(_ServiceIndex);
+            _ServiceIndex.FileName = fileName;
+            _ServiceIndex.BuildDate = buildDate;
+            _ServiceIndex.CurrentOwner = owner;
+            _ServiceIndex.RenderToFile(file, true);
+
+            fileName = "common.service.js";
             if (!File.Exists(Path.Combine(outputDir, fileName)))
             {
                 file = new OutputFile(Path.Combine(outputDir, fileName));
-                ServiceIndex _ServiceIndex = this.Create<ServiceIndex>();
-                this.CopyPropertiesTo(_ServiceIndex);
-                _ServiceIndex.FileName = fileName;
-                _ServiceIndex.BuildDate = buildDate;
-                _ServiceIndex.CurrentOwner = owner;
-                _ServiceIndex.RenderToFile(file, false);
+                ServiceCommon _ServiceCommon = this.Create<ServiceCommon>();
+                this.CopyPropertiesTo(_ServiceCommon);
+                _ServiceCommon.FileName = fileName;
+                _ServiceCommon.BuildDate = buildDate;
+                _ServiceCommon.CurrentOwner = owner;
+                _ServiceCommon.RenderToFile(file, false);
             }
+            
             
             if (owner != SourceDatabase.GetDefaultOwner())
             {
@@ -441,23 +466,6 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _Proxy.CurrentTable = table;
             _Proxy.RenderToFile(file, true);
             
-            outputDir = table.HasDefaultOnwer()
-                ? Path.Combine(buildPath + ".Business")
-                : Path.Combine(buildPath + ".Business", table.Owner.ToHypehatedLowercase());
-
-            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
-            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
-
-            fileName = table.Name.ToHypehatedLowercase() + ".business.js";
-            if (!File.Exists(Path.Combine(outputDir, fileName))) {
-                file = new OutputFile(Path.Combine(outputDir, fileName));
-                Business _Business = this.Create<Business>();
-                this.CopyPropertiesTo(_Business);
-                _Business.FileName = fileName;
-                _Business.BuildDate = buildDate;
-                _Business.CurrentTable = table;
-                _Business.RenderToFile(file, false);
-            }
             
             outputDir = table.HasDefaultOnwer()
                 ? Path.Combine(buildPath + ".Services")

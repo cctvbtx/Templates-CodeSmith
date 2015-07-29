@@ -50,38 +50,74 @@ Desc:
 <%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
 <%@ Import Namespace="CodeSmith.Core.Extensions" %>
 <%@ Import Namespace="CodeSmith.Engine" %>
+<%
+var isRoot = CurrentOwner.Equals(SourceDatabase.GetDefaultOwner());
+
+var tables = SourceDatabase.Tables.Where(x => x.Owner.Equals(CurrentOwner)).ToList().Select(x => x.Name).ToList();
+tables.Sort();
+var owners = new List<string>();
+if (isRoot)
+{
+    foreach (var owner in SourceDatabase.GetOwners().Where(x => !x.Equals(SourceDatabase.GetDefaultOwner())))
+    {
+        if (SourceDatabase.Tables.Count(x => x.Owner.Equals(owner)) > 0) { owners.Add(owner); }
+    }
+    owners.Sort();
+}
+%>
 /*jslint node: true */
 <!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
 
+// SERVICE INDEX: EXPOSES TOP-LEVEL OPERATIONS & REPOSITORIES WITHIN THIS NAMESPACE
+
 'use strict';
 
-<%
-var isDefaultOwner = (!string.IsNullOrEmpty(CurrentOwner) && SourceDatabase.GetDefaultOwner().Equals(CurrentOwner, StringComparison.OrdinalIgnoreCase));
-var tables = SourceDatabase.Tables.Where(x => x.Owner.Equals(CurrentOwner, StringComparison.OrdinalIgnoreCase)).ToList();
-var tableCount = tables.Count;
+var common = require('./common.service');
 
-foreach (var table in tables) 
+<%
+if (tables.Count < 1)
 {
 %>
-module.exports.<%= table.Name.ToPlural().ToCamelCase() %> = require('./<%= table.Name.ToHypehatedLowercase() %>.service');
+// Repositories (none)
 <%
 }
-
-if (isDefaultOwner)
+else
 {
-    if (tableCount > 0)
-    {
 %>
-
+// Repositories (<%= tables.Count %> total)
 <%
-    }
-
-    var owners = SourceDatabase.GetOwners().Where(x => !x.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)).ToList();
-    foreach (var owner in owners)
+    foreach (var table in tables)
     {
 %>
-module.exports.<%= owner.ToCamelCase() %> = require('./<%= owner.ToHypehatedLowercase() %>/index');
+common.<%=  table.ToPlural().ToCamelCase() %> = require('./<%= table.ToHypehatedLowercase() %>.service');
 <%
     }
 }
+
+if (isRoot)
+{
 %>
+
+<%
+    if (owners.Count < 1)
+    {
+%>
+// Namespaces (none)
+<%
+    }
+    else
+    {
+%>
+// Namespaces (<%= owners.Count %> total)
+<%
+        foreach (var owner in owners)
+        {
+%>
+common.<%=  owner.ToCamelCase() %> = require('./<%= owner.ToHypehatedLowercase() %>');
+<%
+        }
+    }
+}
+%>
+
+module.exports = common;
