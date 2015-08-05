@@ -65,6 +65,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 
 <%@ Register Name="ConfigIndex" Template="Templates/MEANWebService/index.config.js.cst" %>
 <%@ Register Name="DataIndex" Template="Templates/MEANWebService/index.data.js.cst" %>
+<%@ Register Name="HostRouteIndex" Template="Templates/MEANWebService/index.host.route.js.cst" %>
 <%@ Register Name="RouteIndex" Template="Templates/MEANWebService/index.route.js.cst" %>
 <%@ Register Name="Package" Template="Templates/MEANWebService/package.json.cst" %>
 <%@ Register Name="Www" Template="Templates/MEANWebService/www.js.cst" %>
@@ -75,6 +76,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
      PER OWNER TEMPLATES
      ########################################################################### --%>
 <%@ Register Name="AngularService" Template="Templates/MEANWebService/angular_service.js.cst" %>
+<%@ Register Name="HostRoutes" Template="Templates/MEANWebService/host.route.js.cst" %>
 <%@ Register Name="ProxyIndex" Template="Templates/MEANWebService/index.proxy.js.cst" %>
 <%@ Register Name="ServiceIndex" Template="Templates/MEANWebService/index.service.js.cst" %>
 <%@ Register Name="BusinessIndex" Template="Templates/MEANWebService/index.business.js.cst" %>
@@ -324,6 +326,20 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         _BusinessIndex.BuildDate = buildDate;
         _BusinessIndex.RenderToFile(file, true);
         
+        
+        outputDir = buildPath + ".Routes";
+        
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+        fileName = "index.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        HostRouteIndex _HostRouteIndex = this.Create<HostRouteIndex>();
+        this.CopyPropertiesTo(_HostRouteIndex);
+        _HostRouteIndex.FileName = fileName;
+        _HostRouteIndex.BuildDate = buildDate;
+        _HostRouteIndex.RenderToFile(file, true);
+        
         return true;
     }
     private bool renderPerOwnerTemplates(string buildPath, DateTime buildDate)
@@ -371,6 +387,25 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
                 _Business.BuildDate = buildDate;
                 _Business.CurrentOwner = owner;
                 _Business.RenderToFile(file, false);
+            }
+
+
+            outputDir = buildPath + ".Routes";
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = owner.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)
+                ? "common.routes.js"
+                : owner.ToHypehatedLowercase() + ".routes.js";
+            if (!File.Exists(Path.Combine(outputDir, fileName))) {
+                file = new OutputFile(Path.Combine(outputDir, fileName));
+                HostRoutes _HostRoutes = this.Create<HostRoutes>();
+                this.CopyPropertiesTo(_HostRoutes);
+                _HostRoutes.FileName = fileName;
+                _HostRoutes.BuildDate = buildDate;
+                _HostRoutes.CurrentOwner = owner;
+                _HostRoutes.RenderToFile(file, false);
             }
             
 

@@ -1,0 +1,95 @@
+﻿<%-- 
+Name:   service.js.cst
+Author: Fred Lackey <fred.lackey@gmail.com>
+Desc:
+--%>
+<%@ CodeTemplate Language="C#" TargetLanguage="JavaScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+
+<%-- 01. Setup --%>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Optional="True" %>
+<%@ Property Name="OutputDirectory" Type="System.String" Optional="True" %>
+<%@ Property Name="OutputVersioning" Type="System.Boolean" Optional="True" %>
+
+<%-- 02. Project --%>
+<%@ Property Name="ProjectName" Type="System.String" Optional="True" %>
+<%@ Property Name="VersionText" Type="System.String" Optional="True" %>
+<%@ Property Name="ProjectDescription" Type="System.String" Optional="True" %>
+<%@ Property Name="AuthorName" Type="System.String" Optional="True" %>
+
+<%-- 03. Dev Config --%>
+<%@ Property Name="DevHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="DevHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="DevDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="DevDbName" Type="System.String" Optional="True" %>
+
+<%-- 03. Prod Config --%>
+<%@ Property Name="ProdHostName" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdHostPort" Type="System.Int32" Optional="True" %>
+<%@ Property Name="ProdDbFQDN" Type="System.String" Optional="True" %>
+<%@ Property Name="ProdDbName" Type="System.String" Optional="True" %>
+
+<%-- 04. Options --%>
+<%@ Property Name="APIRoutePrefix" Type="System.String" Optional="True" %>
+
+<%-- Local Properties --%>
+<%@ Property Name="FileName" Type="System.String" Optional="True" %>
+<%@ Property Name="CurrentOwner" Type="System.String" Optional="True" %>
+<%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
+
+<%@ Map Name="DefaultsDelFlag" Src="Maps\DefaultsDelFlag.csmap" %>
+<%@ Map Name="DtoFieldNames" Src="Maps\DtoFieldNames.csmap" %>
+<%@ Map Name="SqlToMongoose" Src="Maps\SqlToMongoose.csmap" %>
+<%@ Map Name="SqlToMongooseKey" Src="Maps\SqlToMongooseKey.csmap" %>
+
+<%@ Assembly Name="SkydiverFL.Extensions.CodeSmith.dll" Path="..\..\Templates\Common" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Helpers" %>
+<%@ Import Namespace="SkydiverFL.Extensions.CodeSmith.Languages.JavaScript" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+<%
+var isDefaultOwner = SourceDatabase.GetDefaultOwner().Equals(CurrentOwner, StringComparison.OrdinalIgnoreCase);
+var owner = isDefaultOwner ? "common" : CurrentOwner;
+var svcName = isDefaultOwner ? "common.service" : owner.ToHypehatedLowercase();
+var rootNav = "../../";
+
+%>
+/*jslint node: true */
+<!-- #include file="..\Common\Includes\Header-JavaScript.cst" -->
+
+'use strict';
+
+var auth = require('<%= rootNav %>middlewares/common/authentication'),
+    dz = require('dzutils'),
+    config = require('<%= rootNav %>config'),
+    express = require('express'),
+    svc = require('<%= rootNav %>services/<%= ProjectName.ToHypehatedLowercase() %>/<%= svcName %>');
+
+var <%= owner.ToCamelCase() %>Router = express.Router();
+
+// <%= owner.ToCamelCase() %>Router.get('/', auth.sessionOptional, function(req, res, next) {
+//     return res.status(501).send({ msg: 'Not implemented: <%= owner.ToCamelCase() %>Router.get' });
+// });
+
+// <%= owner.ToCamelCase() %>Router.post('/', auth.sessionOptional, function(req, res, next) {
+//     return res.status(501).send({ msg: 'Not implemented: <%= owner.ToCamelCase() %>Router.post' });
+// });
+
+// <%= owner.ToCamelCase() %>Router.put('/', auth.sessionOptional, function(req, res, next) {
+//     return res.status(501).send({ msg: 'Not implemented: <%= owner.ToCamelCase() %>Router.put' });
+// });
+
+// <%= owner.ToCamelCase() %>Router.delete('/', auth.sessionOptional, function(req, res, next) {
+//     return res.status(501).send({ msg: 'Not implemented: <%= owner.ToCamelCase() %>Router.delete' });
+// });
+
+module.exports = <%= owner.ToCamelCase() %>Router;

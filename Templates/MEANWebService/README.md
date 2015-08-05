@@ -1,4 +1,4 @@
-# MEAN Stack Web Service Template v0.4.1
+# MEAN Stack Web Service Template v0.4.2
 
 ## Summary
 
@@ -6,26 +6,29 @@
 Creates MEAN Stack CRUD API web service, and proxy libraries for connecting to that web service, from a SQL Server database (based on the standard express-generator).  This allows a model-first approach to creating MEAN Stack web services in that the modeling can be done through tools such as SQL Server Diagram Tool.  All features of the global templates are supported (non-destructive deletes, audit trails, etc.).
 
 ### Details
-One web service project and four resource projects are generated:
+One web service project and **five** sets of resource files are generated:
 
 #### %PROJECT_NAME%
 This is the main API application built on top of ExpressJS.  All npm scripts are run from this folder.
 
-- **Note: The following folders are intended to be included in a separate project (for example, via SVN Externals) to connect back to the main API application.**
+- **Important: This is the only hosted project folder.  All other folders are intended to be included in a separate project (using a technology such as SVN Externals) to connect back to this main API application.**
 
-#### %PROJECT_NAME%.Business
-Stub files meant to contain multi-step or over-reaching business logic.  Business operations call upon the service libraries.  The goal of these files is to provide higher-level operations which generally span multiple smaller service operations.
-
-#### %PROJECT_NAME%.Module
-Resource files used by other projects as stubs for AngularJS module and services.  Unlike the other subtemplates, where the table name is used to construct the object name, the module is generated one level higher using the table owner / schema name.
-
-- **Note:  Only non-default owner names are generated!**
+- **Note: To increase clarity, the resource folders are listed here in order of priority and NOT alphabetically.**
 
 #### %PROJECT_NAME%.Proxies
-Resource files used by other projects for connecting to this ExpressJS application.  Generally, only the Service libraries will ever call the proxy libraries, however each service file does have a proxy instance variable for convenience.
+Main set of resource files used in a secondary application.  These proxies are responsible for validating all data calls, before going across the wire, as well as all actual communication with the main project.  Generally, only the Service libraries will ever call the proxy libraries, however each service file does have a proxy instance variable for convenience.
 
 #### %PROJECT_NAME%.Services
-Stub files meant to contain business logic.  These files already contain references to the Proxy files and are meant to be deployed along side the Proxies as a resource for a sister project.
+Service calls are bundled together by the object type.  For example, a Widget service operation may encapsulate the work-flow of multiple data calls.  In this example, the Widget service file is used to call upon the Widget proxy file.  For this reason, one service file (stub) is generated for each object type.  Additionally, one Common service file is created at each level for those calls which are over-reaching within a namespace, and across object types, or those which are common to the entire project.
+
+#### %PROJECT_NAME%.Business
+Similar to how the Service files are used to encapsulate calls to each Proxy, the Business Layer contains a set of files which may be used to span multiple namespaces and contain multi-step or over-reaching business logic.  The goal of these files is to provide higher-level operations which generally span multiple smaller service operations.
+
+#### %PROJECT_NAME%.Routes
+Within a typical API application, business and service operations are exposed via routes.  Route stubs provide a reusable mechanism for exposing this logic.
+
+#### %PROJECT_NAME%.Module
+Solutions needing a web-based user interface make use of AngularJS modules to call upon the Routes (which, in turn, call the service and business layers, etc.).  Each namespace has an associated AngularJS service.  And, each AngularJS service is wrapped within an AngularJS Module for the project.  These files complete the client-server communication sequence.
 
 ### Features
 
@@ -56,12 +59,13 @@ Generated code based runs in any environment supporting NodeJS.
 
 `npm install -g nodemon`
 
-**4.** Using CodeSmith Generator v7.0, generate the template.  This will generate five folders:
+**4.** Using CodeSmith Generator v7.0, generate the template.  This will generate six folders:
 
 `%PROJECT NAME%`  
 `%PROJECT NAME%.Business`  (resource project)  
 `%PROJECT NAME%.Module`  (resource project)  
 `%PROJECT NAME%.Proxies`  (resource project)  
+`%PROJECT NAME%.Routes`  (resource project)
 `%PROJECT NAME%.Services`  (resource project)
 
 **5.** Change directory into the `%PROJECT NAME%` folder and install all required binaries using the following command: 
@@ -133,8 +137,11 @@ None at this time.
 ### v0.4.0 - v0.4.1
 - Flushed out Business & Service classes to provide for over-reaching operations.
 
+### v0.4.2
+- Added Routes files for client deployment.
+
 ---
 
-Last updated: 7/29/2015 11:39:02 AM 
+Last updated: 8/5/2015 3:05:20 PM  
       
 
