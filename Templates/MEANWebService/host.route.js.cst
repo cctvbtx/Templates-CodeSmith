@@ -72,7 +72,7 @@ var auth = require('<%= rootNav %>middlewares/common/authentication'),
     dz = require('dzutils'),
     config = require('<%= rootNav %>config'),
     express = require('express'),
-    svc = require('<%= rootNav %>services/<%= ProjectName.ToHypehatedLowercase() %>/<%= svcName %>');
+    svc = require('<%= rootNav %>services');
 
 var <%= owner.ToCamelCase() %>Router = express.Router();
 
