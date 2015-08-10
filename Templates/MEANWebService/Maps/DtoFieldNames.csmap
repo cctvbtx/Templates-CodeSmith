@@ -22,6 +22,10 @@
       <value>aid</value>
     </item>
     <item>
+      <key>ApplicationVersionId</key>
+      <value>vid</value>
+    </item>
+    <item>
       <key>AuditDeletedDate</key>
       <value>k</value>
     </item>
@@ -118,6 +122,14 @@
       <value>con</value>
     </item>
     <item>
+      <key>DateCreated</key>
+      <value>beg</value>
+    </item>
+    <item>
+      <key>DateEnded</key>
+      <value>end</value>
+    </item>
+    <item>
       <key>DateExpiry</key>
       <value>exp</value>
     </item>
@@ -166,6 +178,10 @@
       <value>enm</value>
     </item>
     <item>
+      <key>EnvironmentId</key>
+      <value>eid</value>
+    </item>
+    <item>
       <key>FirstName</key>
       <value>fnm</value>
     </item>
@@ -194,6 +210,14 @@
       <value>ident</value>
     </item>
     <item>
+      <key>IsAccountIdentityRequired</key>
+      <value>reqaid</value>
+    </item>
+    <item>
+      <key>IsAccountRequired</key>
+      <value>reqacct</value>
+    </item>
+    <item>
       <key>IsAdmin</key>
       <value>isa</value>
     </item>
@@ -202,8 +226,20 @@
       <value>isc</value>
     </item>
     <item>
+      <key>IsMemberEmailAddressRequired</key>
+      <value>reqeml</value>
+    </item>
+    <item>
+      <key>IsMemberIdentityRequired</key>
+      <value>reqmid</value>
+    </item>
+    <item>
       <key>IsOwner</key>
       <value>iso</value>
+    </item>
+    <item>
+      <key>IsSecurePortRequired</key>
+      <value>reqssl</value>
     </item>
     <item>
       <key>IsSetNameRequired</key>
@@ -262,6 +298,10 @@
       <value>oid</value>
     </item>
     <item>
+      <key>OrganizationUid</key>
+      <value>oid</value>
+    </item>
+    <item>
       <key>PassHash</key>
       <value>ph</value>
     </item>
@@ -271,6 +311,10 @@
     </item>
     <item>
       <key>PersonId</key>
+      <value>pid</value>
+    </item>
+    <item>
+      <key>PersonUid</key>
       <value>pid</value>
     </item>
     <item>
@@ -340,46 +384,6 @@
     <item>
       <key>VersionText</key>
       <value>ver</value>
-    </item>
-    <item>
-      <key>OrganizationUid</key>
-      <value>oid</value>
-    </item>
-    <item>
-      <key>ApplicationVersionId</key>
-      <value>vid</value>
-    </item>
-    <item>
-      <key>DateCreated</key>
-      <value>beg</value>
-    </item>
-    <item>
-      <key>DateEnded</key>
-      <value>end</value>
-    </item>
-    <item>
-      <key>PersonUid</key>
-      <value>pid</value>
-    </item>
-    <item>
-      <key>IsMemberEmailAddressRequired</key>
-      <value>reqeml</value>
-    </item>
-    <item>
-      <key>IsMemberIdentityRequired</key>
-      <value>reqmid</value>
-    </item>
-    <item>
-      <key>IsAccountRequired</key>
-      <value>reqacct</value>
-    </item>
-    <item>
-      <key>IsAccountIdentityRequired</key>
-      <value>reqaid</value>
-    </item>
-    <item>
-      <key>IsSecurePortRequired</key>
-      <value>reqssl</value>
     </item>
   </map>
 </codeSmith>

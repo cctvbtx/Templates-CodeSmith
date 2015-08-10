@@ -62,13 +62,13 @@ Desc:
 
 (function (module) {
 
-    var <%= CurrentOwner.ToCamelCase() %>Service = function ($http, $q) {
+    var <%= CurrentOwner.ToCamelCase() %> = function ($http, $q) {
 
         return {
         }
 
     };
 
-    module.factory('<%= CurrentOwner.ToCamelCase() %>Service', <%= CurrentOwner.ToCamelCase() %>Service);
+    module.factory('<%= CurrentOwner.ToCamelCase() %>', <%= CurrentOwner.ToCamelCase() %>);
 
 })(angular.module('<%= ProjectName.ToCamelCase() %>'));
