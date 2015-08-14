@@ -296,12 +296,12 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         _SeedIndexUtil.RenderToFile(file, true);
 
         
-        outputDir = buildPath + ".Module";
+        outputDir = buildPath + ".Module.Public";
 
         if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
         if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
 
-        fileName = "module.js";
+        fileName = "module.public.js";
         if (!File.Exists(Path.Combine(outputDir, fileName)))
         {
             file = new OutputFile(Path.Combine(outputDir, fileName));
@@ -311,6 +311,24 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             _AngularModule.BuildDate = buildDate;
             _AngularModule.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
         }
+
+        // REBUILD MODULE FOR PRIVATE - BEGIN
+        outputDir = buildPath + ".Module.Private";
+
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+        fileName = "module.private.js";
+        if (!File.Exists(Path.Combine(outputDir, fileName)))
+        {
+            file = new OutputFile(Path.Combine(outputDir, fileName));
+            AngularModule _AngularModule = this.Create<AngularModule>();
+            this.CopyPropertiesTo(_AngularModule);
+            _AngularModule.FileName = fileName;
+            _AngularModule.BuildDate = buildDate;
+            _AngularModule.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
+        }
+        // REBUILD MODULE FOR PRIVATE - END
         
         
         outputDir = buildPath + ".Business";
@@ -327,7 +345,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         _BusinessIndex.RenderToFile(file, true);
         
         
-        outputDir = buildPath + ".Routes";
+        outputDir = buildPath + ".Routes.Public";
         
         if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
         if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
@@ -339,6 +357,21 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         _HostRouteIndex.FileName = fileName;
         _HostRouteIndex.BuildDate = buildDate;
         _HostRouteIndex.RenderToFile(file, true);
+        
+        // REBUILD ROUTES FOR PRIVATE - BEGIN
+        outputDir = buildPath + ".Routes.Private";
+        
+        if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+        if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+        fileName = "index.js";
+        file = new OutputFile(Path.Combine(outputDir, fileName));
+        _HostRouteIndex = this.Create<HostRouteIndex>();
+        this.CopyPropertiesTo(_HostRouteIndex);
+        _HostRouteIndex.FileName = fileName;
+        _HostRouteIndex.BuildDate = buildDate;
+        _HostRouteIndex.RenderToFile(file, true);
+        // REBUILD ROUTES FOR PRIVATE - end
         
         return true;
     }
@@ -389,8 +422,9 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
                 _Business.RenderToFile(file, false);
             }
 
+            
 
-            outputDir = buildPath + ".Routes";
+            outputDir = buildPath + ".Routes.Public";
 
             if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
             if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
@@ -407,8 +441,27 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
                 _HostRoutes.CurrentOwner = owner;
                 _HostRoutes.RenderToFile(file, false);
             }
-            
 
+            outputDir = buildPath + ".Routes.Private";
+
+            if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+            if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+            fileName = owner.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)
+                ? "common.routes.js"
+                : owner.ToHypehatedLowercase() + ".routes.js";
+            if (!File.Exists(Path.Combine(outputDir, fileName))) {
+                file = new OutputFile(Path.Combine(outputDir, fileName));
+                HostRoutes _HostRoutes = this.Create<HostRoutes>();
+                this.CopyPropertiesTo(_HostRoutes);
+                _HostRoutes.FileName = fileName;
+                _HostRoutes.BuildDate = buildDate;
+                _HostRoutes.CurrentOwner = owner;
+                _HostRoutes.RenderToFile(file, false);
+            }
+
+            
+            
             outputDir = owner.Equals(SourceDatabase.GetDefaultOwner(), StringComparison.OrdinalIgnoreCase)
                 ? Path.Combine(buildPath + ".Services")
                 : Path.Combine(buildPath + ".Services", owner.ToHypehatedLowercase());
@@ -440,7 +493,24 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
             
             if (owner != SourceDatabase.GetDefaultOwner())
             {
-                outputDir = Path.Combine(buildPath + ".Module", "services");
+                outputDir = Path.Combine(buildPath + ".Module.Public", "services");
+                
+                if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
+                if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
+
+                fileName = owner.ToHypehatedLowercase() + ".js";
+                if (!File.Exists(Path.Combine(outputDir, fileName)))
+                {
+                    file = new OutputFile(Path.Combine(outputDir, fileName));
+                    AngularService _AngularService = this.Create<AngularService>();
+                    this.CopyPropertiesTo(_AngularService);
+                    _AngularService.FileName = fileName;
+                    _AngularService.BuildDate = buildDate;
+                    _AngularService.CurrentOwner = owner;
+                    _AngularService.RenderToFile(file, false);     // TODO: REPLACE WITH JAVASCRIPT REGION
+                }
+
+                outputDir = Path.Combine(buildPath + ".Module.Private", "services");
                 
                 if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
                 if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
