@@ -73,7 +73,7 @@ foreach (var column in CurrentTable.Columns)
 'use strict';
 
 var dz = require('dzutils'),
-    now = new Date(),
+    now = dz.dates.MIN_DATE,
     data = require('../../<%= CurrentTable.HasDefaultOnwer() ? "" : "../" %>models');
 
 var items = [

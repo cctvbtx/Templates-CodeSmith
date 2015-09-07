@@ -18,6 +18,14 @@
       <value>aid</value>
     </item>
     <item>
+      <key>AccountRoleId</key>
+      <value>rid</value>
+    </item>
+    <item>
+      <key>AccountTypeId</key>
+      <value>tid</value>
+    </item>
+    <item>
       <key>ApplicationId</key>
       <value>aid</value>
     </item>
@@ -64,6 +72,10 @@
     <item>
       <key>BirthDate</key>
       <value>bdt</value>
+    </item>
+    <item>
+      <key>BirthDateLockDate</key>
+      <value>ldt</value>
     </item>
     <item>
       <key>BirthMonth</key>
@@ -114,6 +126,10 @@
       <value>coco</value>
     </item>
     <item>
+      <key>DateBegin</key>
+      <value>beg</value>
+    </item>
+    <item>
       <key>DateCompleted</key>
       <value>com</value>
     </item>
@@ -124,6 +140,10 @@
     <item>
       <key>DateCreated</key>
       <value>beg</value>
+    </item>
+    <item>
+      <key>DateEnd</key>
+      <value>end</value>
     </item>
     <item>
       <key>DateEnded</key>
@@ -146,12 +166,24 @@
       <value>ds</value>
     </item>
     <item>
+      <key>DateTransmitted</key>
+      <value>trn</value>
+    </item>
+    <item>
       <key>Description</key>
       <value>desc</value>
     </item>
     <item>
       <key>DisplayName</key>
       <value>dnm</value>
+    </item>
+    <item>
+      <key>DisplayNamePlaceholder</key>
+      <value>dnp</value>
+    </item>
+    <item>
+      <key>DisplayNameTitle</key>
+      <value>dnt</value>
     </item>
     <item>
       <key>DomainId</key>
@@ -182,12 +214,28 @@
       <value>eid</value>
     </item>
     <item>
+      <key>ExternalMemberId</key>
+      <value>xid</value>
+    </item>
+    <item>
       <key>FirstName</key>
       <value>fnm</value>
     </item>
     <item>
       <key>FormalName</key>
       <value>nmf</value>
+    </item>
+    <item>
+      <key>FullName</key>
+      <value>nmf</value>
+    </item>
+    <item>
+      <key>FullNamePlaceholder</key>
+      <value>fnp</value>
+    </item>
+    <item>
+      <key>FullNameTitle</key>
+      <value>fnt</value>
     </item>
     <item>
       <key>FunctionCode</key>
@@ -202,12 +250,24 @@
       <value>gnm</value>
     </item>
     <item>
+      <key>HostId</key>
+      <value>hid</value>
+    </item>
+    <item>
+      <key>HostTypeId</key>
+      <value>tid</value>
+    </item>
+    <item>
       <key>Id</key>
       <value>id</value>
     </item>
     <item>
       <key>Identifier</key>
-      <value>ident</value>
+      <value>idt</value>
+    </item>
+    <item>
+      <key>IdentifierId</key>
+      <value>iid</value>
     </item>
     <item>
       <key>IsAccountIdentityRequired</key>
@@ -226,6 +286,42 @@
       <value>isc</value>
     </item>
     <item>
+      <key>IsCityAllowed</key>
+      <value>aci</value>
+    </item>
+    <item>
+      <key>IsCityCodeAllowed</key>
+      <value>aci</value>
+    </item>
+    <item>
+      <key>IsCityCodeRequired</key>
+      <value>rci</value>
+    </item>
+    <item>
+      <key>IsCityRequired</key>
+      <value>rci</value>
+    </item>
+    <item>
+      <key>IsCountryAllowed</key>
+      <value>aco</value>
+    </item>
+    <item>
+      <key>IsCountryCodeAllowed</key>
+      <value>aco</value>
+    </item>
+    <item>
+      <key>IsCountryCodeRequired</key>
+      <value>rco</value>
+    </item>
+    <item>
+      <key>IsCountryRequired</key>
+      <value>rco</value>
+    </item>
+    <item>
+      <key>IsDisplayNameRequired</key>
+      <value>rdn</value>
+    </item>
+    <item>
       <key>IsMemberEmailAddressRequired</key>
       <value>reqeml</value>
     </item>
@@ -236,6 +332,14 @@
     <item>
       <key>IsOwner</key>
       <value>iso</value>
+    </item>
+    <item>
+      <key>IsPasswordRequired</key>
+      <value>rpw</value>
+    </item>
+    <item>
+      <key>IsPictureUrlRequired</key>
+      <value>rpu</value>
     </item>
     <item>
       <key>IsSecurePortRequired</key>
@@ -250,8 +354,40 @@
       <value>fp</value>
     </item>
     <item>
+      <key>IsStateAllowed</key>
+      <value>ast</value>
+    </item>
+    <item>
+      <key>IsStateCodeAllowed</key>
+      <value>ast</value>
+    </item>
+    <item>
+      <key>IsStateCodeRequired</key>
+      <value>rst</value>
+    </item>
+    <item>
+      <key>IsStateRequired</key>
+      <value>rst</value>
+    </item>
+    <item>
+      <key>KeyId</key>
+      <value>kid</value>
+    </item>
+    <item>
       <key>LastName</key>
       <value>lnm</value>
+    </item>
+    <item>
+      <key>LocaleDisclaimer</key>
+      <value>ld</value>
+    </item>
+    <item>
+      <key>LocalePlaceholder</key>
+      <value>lp</value>
+    </item>
+    <item>
+      <key>LocaleTitle</key>
+      <value>lt</value>
     </item>
     <item>
       <key>LocationCode</key>
@@ -270,8 +406,20 @@
       <value>nm</value>
     </item>
     <item>
+      <key>NameFirst</key>
+      <value>fnm</value>
+    </item>
+    <item>
       <key>NameFormal</key>
       <value>nmf</value>
+    </item>
+    <item>
+      <key>NameLast</key>
+      <value>lnm</value>
+    </item>
+    <item>
+      <key>NameMiddle</key>
+      <value>mnm</value>
     </item>
     <item>
       <key>NamePlural</key>
@@ -318,8 +466,28 @@
       <value>pid</value>
     </item>
     <item>
+      <key>PictureUrl</key>
+      <value>pul</value>
+    </item>
+    <item>
+      <key>Port</key>
+      <value>pt</value>
+    </item>
+    <item>
       <key>Priority</key>
       <value>p</value>
+    </item>
+    <item>
+      <key>ProductEditionId</key>
+      <value>peid</value>
+    </item>
+    <item>
+      <key>ProductId</key>
+      <value>pid</value>
+    </item>
+    <item>
+      <key>ProductVersionId</key>
+      <value>pvid</value>
     </item>
     <item>
       <key>PublicUid</key>
@@ -340,6 +508,22 @@
     <item>
       <key>RoleName</key>
       <value>rnm</value>
+    </item>
+    <item>
+      <key>RoleTypeId</key>
+      <value>rti</value>
+    </item>
+    <item>
+      <key>ServiceId</key>
+      <value>sid</value>
+    </item>
+    <item>
+      <key>SessionId</key>
+      <value>sid</value>
+    </item>
+    <item>
+      <key>SignupRequestId</key>
+      <value>rid</value>
     </item>
     <item>
       <key>SourceId</key>
@@ -366,6 +550,10 @@
       <value>txt</value>
     </item>
     <item>
+      <key>TransferKey</key>
+      <value>tky</value>
+    </item>
+    <item>
       <key>TypeCode</key>
       <value>tco</value>
     </item>
@@ -376,6 +564,14 @@
     <item>
       <key>TypeName</key>
       <value>tnm</value>
+    </item>
+    <item>
+      <key>UsageDisclaimer</key>
+      <value>ud</value>
+    </item>
+    <item>
+      <key>Value</key>
+      <value>val</value>
     </item>
     <item>
       <key>Version</key>

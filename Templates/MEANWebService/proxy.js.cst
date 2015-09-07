@@ -193,8 +193,12 @@ var validateItems = function (items) {
 
 operations.Add("toDto");
 operations.Add("toDtos");
+operations.Add("toDtoFull");
+operations.Add("toDtosFull");
 operations.Add("toItem");
 operations.Add("toItems");
+operations.Add("toItemFull");
+operations.Add("toItemsFull");
 %>
 
 var toDto = function (item) {
