@@ -64,6 +64,7 @@ module.exports = {
     description: '<%= ProjectDescription %> (dev)',
     db: 'mongodb://<%= DevDbFQDN %>/<%= DevDbName %>',
     port: <%= DevHostPort %>,
+    sendItemOnCreate: false,
     proxies: {
         <%= ProjectName %>: {
             url: 'http://<%= url %>/'

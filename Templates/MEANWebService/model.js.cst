@@ -760,7 +760,12 @@ foreach (var index in CurrentTable.Indexes.Where(x => x.IsUnique && !x.IsPkIndex
 <%
 }
 %>
-<%= pad %>    return createNew(<%= paramArrayForCreate %>, callback);
+<%= pad %>    createNew(<%= paramArrayForCreate %>, function (err, newItem) {
+<%= pad %>        if (err) { return callback(err); }
+<%= pad %>        if (!newItem) { return callback(new Error('Item not initialized')); }
+<%= pad %>        newItem._new = true;
+<%= pad %>        return callback(null, newItem);
+<%= pad %>    });
 <%
 for (int i = indent; i > 0; i--)
 {

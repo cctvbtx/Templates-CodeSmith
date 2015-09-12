@@ -56,6 +56,7 @@ Desc:
 'use strict';
 
 var express = require('express'),
+    config  = require('../../<%= CurrentTable.HasDefaultOnwer() ? "" : "../" %>config'),
     <%= CurrentTable.Name.ToPlural().ToPascalCase() %> = require('../../<%= CurrentTable.HasDefaultOnwer() ? "models/" : "../models/" + CurrentTable.Owner.ToHypehatedLowercase() + "/" %><%= CurrentTable.Name.ToHypehatedLowercase() %>.model');
     
 var <%= CurrentTable.Name.ToCamelCase() %>Router = express.Router();
@@ -172,7 +173,8 @@ foreach (var column in columnsForCreate)
     <%= CurrentTable.Name.ToCamelCase() %>Model.createNewOrGet(<%= paramArrayForCreate %>, suppressError, function (err, item) {
         if (err && !item) { throw err; }
         if (err && item) { return res.send({ msg: err.message, id: item.id }); }
-        return res.send({ id: item.id });
+        if ((config.sendItemOnCreate && item._new) || !item._new) { return res.send(item); }
+        return res.send({ id: item.id, _new: !!item._new });
     });
 });
 <%

@@ -242,6 +242,10 @@
       <value>fuco</value>
     </item>
     <item>
+      <key>Gender</key>
+      <value>gen</value>
+    </item>
+    <item>
       <key>GenderCode</key>
       <value>gco</value>
     </item>
@@ -378,6 +382,10 @@
       <value>lnm</value>
     </item>
     <item>
+      <key>Locale</key>
+      <value>loc</value>
+    </item>
+    <item>
       <key>LocaleDisclaimer</key>
       <value>ld</value>
     </item>
@@ -490,6 +498,10 @@
       <value>pvid</value>
     </item>
     <item>
+      <key>ProfileUrl</key>
+      <value>mul</value>
+    </item>
+    <item>
       <key>PublicUid</key>
       <value>u</value>
     </item>
@@ -548,6 +560,10 @@
     <item>
       <key>Text</key>
       <value>txt</value>
+    </item>
+    <item>
+      <key>Timezone</key>
+      <value>tz</value>
     </item>
     <item>
       <key>TransferKey</key>

@@ -214,6 +214,10 @@
       <value>eid</value>
     </item>
     <item>
+      <key>ExternalMemberId</key>
+      <value>xid</value>
+    </item>
+    <item>
       <key>FirstName</key>
       <value>fnm</value>
     </item>
@@ -236,6 +240,10 @@
     <item>
       <key>FunctionCode</key>
       <value>fuco</value>
+    </item>
+    <item>
+      <key>Gender</key>
+      <value>gen</value>
     </item>
     <item>
       <key>GenderCode</key>
@@ -314,6 +322,10 @@
       <value>rco</value>
     </item>
     <item>
+      <key>IsDisplayNameRequired</key>
+      <value>rdn</value>
+    </item>
+    <item>
       <key>IsMemberEmailAddressRequired</key>
       <value>reqeml</value>
     </item>
@@ -324,6 +336,14 @@
     <item>
       <key>IsOwner</key>
       <value>iso</value>
+    </item>
+    <item>
+      <key>IsPasswordRequired</key>
+      <value>rpw</value>
+    </item>
+    <item>
+      <key>IsPictureUrlRequired</key>
+      <value>rpu</value>
     </item>
     <item>
       <key>IsSecurePortRequired</key>
@@ -354,8 +374,16 @@
       <value>rst</value>
     </item>
     <item>
+      <key>KeyId</key>
+      <value>kid</value>
+    </item>
+    <item>
       <key>LastName</key>
       <value>lnm</value>
+    </item>
+    <item>
+      <key>Locale</key>
+      <value>loc</value>
     </item>
     <item>
       <key>LocaleDisclaimer</key>
@@ -470,6 +498,10 @@
       <value>pvid</value>
     </item>
     <item>
+      <key>ProfileUrl</key>
+      <value>mul</value>
+    </item>
+    <item>
       <key>PublicUid</key>
       <value>_u</value>
     </item>
@@ -530,6 +562,10 @@
       <value>txt</value>
     </item>
     <item>
+      <key>Timezone</key>
+      <value>tz</value>
+    </item>
+    <item>
       <key>TransferKey</key>
       <value>tky</value>
     </item>
@@ -550,36 +586,16 @@
       <value>ud</value>
     </item>
     <item>
+      <key>Value</key>
+      <value>val</value>
+    </item>
+    <item>
       <key>Version</key>
       <value>ver</value>
     </item>
     <item>
       <key>VersionText</key>
       <value>ver</value>
-    </item>
-    <item>
-      <key>KeyId</key>
-      <value>kid</value>
-    </item>
-    <item>
-      <key>Value</key>
-      <value>val</value>
-    </item>
-    <item>
-      <key>ExternalMemberId</key>
-      <value>xid</value>
-    </item>
-    <item>
-      <key>IsDisplayNameRequired</key>
-      <value>rdn</value>
-    </item>
-    <item>
-      <key>IsPictureUrlRequired</key>
-      <value>rpu</value>
-    </item>
-    <item>
-      <key>IsPasswordRequired</key>
-      <value>rpw</value>
     </item>
   </map>
 </codeSmith>

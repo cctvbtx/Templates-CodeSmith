@@ -595,11 +595,13 @@ foreach (var column in columnsForCreate)
     var client = request.createClient(BASE_URL);
     client.post(URL_PATH, toDto(item), function (err, res, body) {
         if (err) { return callback(err); }
-        var response = {
-            id: (body && body.id ? body.id : null)
-        };
-        if (body && dz.strings.notNullOrWhiteSpace(body.msg)) { response.msg = body.msg; }
-        return callback(null, response);
+        if (!body) { return callback(new Error('No response returned')); }
+        if (!body.id) { return callback(new Error('Invalid response returned (no ID with object)')); }
+        if (body._new && Object.keys(body).length == 2) {
+            item.id = body.id;
+            return callback(null, item);
+        }
+        return callback(null, body);
     });
 };
 

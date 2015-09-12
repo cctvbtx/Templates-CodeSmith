@@ -1,4 +1,4 @@
-# MEAN Stack Web Service Template v0.4.3
+# MEAN Stack Web Service Template v0.4.4
 
 ## Summary
 
@@ -151,8 +151,11 @@ None at this time.
 ### v0.4.3
 - Use of Public & Private folder structures introduced.
 
+### v0.4.4
+- Enhanced proxy & model functionality to increase DTO verbosity on creates as needed.
+
 ---
 
-Last updated: 8/14/2015 10:23:48 AM   
+Last updated: 9/12/2015 4:06:17 PM    
       
 
