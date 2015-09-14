@@ -1,4 +1,4 @@
-# MEAN Stack Web Service Template v0.4.4
+# MEAN Stack Web Service Template v0.4.5
 
 ## Summary
 
@@ -154,8 +154,11 @@ None at this time.
 ### v0.4.4
 - Enhanced proxy & model functionality to increase DTO verbosity on creates as needed.
 
+### v0.4.5
+- Corrected logic problem with non-destructive delete operations within the Proxy libraries.  Further investigation and work is needed to consider the flaw 100% corrected, however non-destructive deletes work correctly at this point.
+
 ---
 
-Last updated: 9/12/2015 4:06:17 PM    
+Last updated: 9/14/2015 11:09:26 AM     
       
 

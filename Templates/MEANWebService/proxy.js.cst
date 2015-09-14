@@ -37,6 +37,7 @@ Desc:
 <%@ Property Name="BuildDate" Type="System.DateTime" Optional="True" %>
 
 <%@ Map Name="DefaultsDelFlag" Src="Maps\DefaultsDelFlag.csmap" %>
+<%@ Map Name="ValuesDelFlag" Src="Maps\ValuesDelFlag.csmap" %>
 <%@ Map Name="DtoFieldNames" Src="Maps\DtoFieldNames.csmap" %>
 <%@ Map Name="SqlToMongoose" Src="Maps\SqlToMongoose.csmap" %>
 <%@ Map Name="SqlToMongooseKey" Src="Maps\SqlToMongooseKey.csmap" %>
@@ -784,51 +785,24 @@ else
 %>
 
 var deleteMany = function (query<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
-    if (!query) { return callback(new Error('Query params required but not supplied')); }
-    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>};
-    validateItem(data, function (err) {     // Validate any user value that may exist
-        if (err) { return callback(err); }
-        validateItem(query, function (err) {
-            if (err) { return callback(new Error('Invalid query: ' + err.message)); }
-            validateItem(update, function (err) {
-                if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var dto = toDto(data),
-                    client = request.createClient(BASE_URL);
-                dto.query = toDto(query);
-                dto.update = toDto(update);
-                client.delete(URL_PATH + '/many', dto, function (err, res, body) {
-                    if (err) { return callback(err); }
-                    return callback(null, body);
-                });
-            });
-        });
-    });
+    var update = { <%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %>: <%= ValuesDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> };
+    return modifyMany (query, update<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
 };
 
 var deleteOne = function (query<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
-    if (!query) { return callback(new Error('Query params required but not supplied')); }
-    var data = {<%= CurrentTable.HasVersionUserColumn() ? " " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + ": " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase() + " " : string.Empty %>};
-    validateItem(data, function (err) {     // Validate any user value that may exist
-        if (err) { return callback(err); }
-        validateItem(query, function (err) {
-            if (err) { return callback(new Error('Invalid query: ' + err.message)); }
-            validateItem(update, function (err) {
-                if (err) { return callback(new Error('Invalid update: ' + err.message)); }
-                var client = request.createClient(BASE_URL),
-                    dto = toDto(data);
-                dto.query = toDto(query);
-                dto.update = toDto(update);
-                client.delete(URL_PATH, dto, function (err, res, body) {
-                    if (err) { return callback(err); }
-                    return callback(null, body);
-                });
-            });
-        });
+    var update = { <%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %>: <%= ValuesDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> };
+    modifyOne (query, update<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, function (err, response) {
+        if (err) { return callback(new Error('Problem deleting item: ' + err.message)); }
+        return callback(null, response);
     });
 };
 
 var deleteById = function (id<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
-    return deleteOne({ id: id }<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
+    var query  = { id: id };
+    deleteOne(query<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, function (err, response) {
+        if (err) { return callback(new Error('Problem deleting item: ' + err.message)); }
+        return callback(null, response);
+    }); 
 };
 <%
 }

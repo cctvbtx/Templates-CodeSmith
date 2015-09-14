@@ -947,7 +947,6 @@ else
 
 var deleteMany = function (queryDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback) {
     if (typeof queryDto === 'undefined') { return callback(new Error('No query supplied')); }
-    queryDto.<%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %> = <%= DefaultsDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %>;
     var updateDto = { <%= CurrentTable.GetDeleteFlagColumn().Name.ToCamelCase() %>: <%= ValuesDelFlag[CurrentTable.GetDeleteFlagColumn().NativeType] %> };
     return modifyMany(queryDto, updateDto<%= CurrentTable.HasVersionUserColumn() ? (", " + CurrentTable.GetVersionUserColumn().Name.ToCamelCase()) : string.Empty %>, callback);
 };

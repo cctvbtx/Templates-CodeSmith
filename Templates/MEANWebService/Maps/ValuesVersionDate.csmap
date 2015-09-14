@@ -3,7 +3,7 @@
   <map caseSensitive="false" returnKeyWhenNotFound="false">
     <item>
       <key>datetime</key>
-      <value>moment().utc().toDate()</value>
+      <value>new Date()</value>
     </item>
     <item>
       <key>int</key>
