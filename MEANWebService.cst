@@ -68,7 +68,7 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
 <%@ Register Name="HostRouteIndex" Template="Templates/MEANWebService/index.host.route.js.cst" %>
 <%@ Register Name="RouteIndex" Template="Templates/MEANWebService/index.route.js.cst" %>
 <%@ Register Name="Package" Template="Templates/MEANWebService/package.json.cst" %>
-<%@ Register Name="Www" Template="Templates/MEANWebService/www.js.cst" %>
+<%@ Register Name="Server" Template="Templates/MEANWebService/server.js.cst" %>
 
 <%@ Register Name="AngularModule" Template="Templates/MEANWebService/angular_module.js.cst" %>
 
@@ -220,18 +220,19 @@ Author:  Fred Lackey <fred.lackey@gmail.com>
         _Package.BuildDate = buildDate;
         _Package.RenderToFile(file, true);
 
-        outputDir = Path.Combine(buildPath, "scripts");
+        //outputDir = Path.Combine(buildPath, "scripts");
+        outputDir = buildPath;
 
         if (!Directory.Exists(outputDir)){ Directory.CreateDirectory(outputDir); }
         if (!Directory.Exists(outputDir)){ this.Progress.Status = "Output directory not created."; return false; }
         
-        fileName = "www.js";
+        fileName = "server.js";
         file = new OutputFile(Path.Combine(outputDir, fileName));
-        Www _Www = this.Create<Www>();
-        this.CopyPropertiesTo(_Www);
-        _Www.FileName = fileName;
-        _Www.BuildDate = buildDate;
-        _Www.RenderToFile(file, true);
+        Server _Server = this.Create<Server>();
+        this.CopyPropertiesTo(_Server);
+        _Server.FileName = fileName;
+        _Server.BuildDate = buildDate;
+        _Server.RenderToFile(file, true);
 
         outputDir = Path.Combine(buildPath, "views");
 

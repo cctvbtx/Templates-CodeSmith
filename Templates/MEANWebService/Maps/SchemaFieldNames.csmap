@@ -7,11 +7,11 @@
     </item>
     <item>
       <key>AbbreviationPlural</key>
-      <value>abvp</value>
+      <value>abp</value>
     </item>
     <item>
       <key>AbbreviationSingular</key>
-      <value>abvs</value>
+      <value>abs</value>
     </item>
     <item>
       <key>AccountId</key>
@@ -24,6 +24,10 @@
     <item>
       <key>AccountTypeId</key>
       <value>tid</value>
+    </item>
+    <item>
+      <key>AccountUid</key>
+      <value>aid</value>
     </item>
     <item>
       <key>ApplicationId</key>
@@ -54,6 +58,10 @@
       <value>_v</value>
     </item>
     <item>
+      <key>AvailableSpace</key>
+      <value>asp</value>
+    </item>
+    <item>
       <key>BirthCity</key>
       <value>bci</value>
     </item>
@@ -78,6 +86,10 @@
       <value>ldt</value>
     </item>
     <item>
+      <key>BirthDay</key>
+      <value>bda</value>
+    </item>
+    <item>
       <key>BirthMonth</key>
       <value>bmo</value>
     </item>
@@ -94,16 +106,32 @@
       <value>byr</value>
     </item>
     <item>
+      <key>Capacity</key>
+      <value>cap</value>
+    </item>
+    <item>
       <key>Change</key>
       <value>chg</value>
     </item>
     <item>
       <key>CityCode</key>
-      <value>cico</value>
+      <value>lco</value>
     </item>
     <item>
       <key>Code</key>
       <value>co</value>
+    </item>
+    <item>
+      <key>ComputerId</key>
+      <value>cid</value>
+    </item>
+    <item>
+      <key>ComputerName</key>
+      <value>cnm</value>
+    </item>
+    <item>
+      <key>ComputerUid</key>
+      <value>cid</value>
     </item>
     <item>
       <key>ConfCode</key>
@@ -123,7 +151,7 @@
     </item>
     <item>
       <key>CountryCode</key>
-      <value>coco</value>
+      <value>cco</value>
     </item>
     <item>
       <key>DateBegin</key>
@@ -154,6 +182,10 @@
       <value>exp</value>
     </item>
     <item>
+      <key>DateModified</key>
+      <value>mod</value>
+    </item>
+    <item>
       <key>DateReplaced</key>
       <value>rep</value>
     </item>
@@ -171,7 +203,19 @@
     </item>
     <item>
       <key>Description</key>
-      <value>desc</value>
+      <value>des</value>
+    </item>
+    <item>
+      <key>DeviceId</key>
+      <value>did</value>
+    </item>
+    <item>
+      <key>DiscoveredItemId</key>
+      <value>dii</value>
+    </item>
+    <item>
+      <key>DiscoveredSessionId</key>
+      <value>dsi</value>
     </item>
     <item>
       <key>DisplayName</key>
@@ -198,8 +242,16 @@
       <value>eid</value>
     </item>
     <item>
+      <key>EndPointId</key>
+      <value>eid</value>
+    </item>
+    <item>
       <key>EntityId</key>
       <value>eid</value>
+    </item>
+    <item>
+      <key>EntityTypeName</key>
+      <value>etn</value>
     </item>
     <item>
       <key>EntityUid</key>
@@ -214,16 +266,44 @@
       <value>eid</value>
     </item>
     <item>
+      <key>ExternalMaxQuantity</key>
+      <value>emx</value>
+    </item>
+    <item>
       <key>ExternalMemberId</key>
       <value>xid</value>
+    </item>
+    <item>
+      <key>ExternalMinQuantity</key>
+      <value>emn</value>
+    </item>
+    <item>
+      <key>FirstInitial</key>
+      <value>fni</value>
     </item>
     <item>
       <key>FirstName</key>
       <value>fnm</value>
     </item>
     <item>
+      <key>FirstNameInitial</key>
+      <value>fni</value>
+    </item>
+    <item>
+      <key>FolderId</key>
+      <value>fid</value>
+    </item>
+    <item>
+      <key>FolderUid</key>
+      <value>fid</value>
+    </item>
+    <item>
       <key>FormalName</key>
       <value>nmf</value>
+    </item>
+    <item>
+      <key>FormatId</key>
+      <value>fid</value>
     </item>
     <item>
       <key>FullName</key>
@@ -239,7 +319,7 @@
     </item>
     <item>
       <key>FunctionCode</key>
-      <value>fuco</value>
+      <value>fco</value>
     </item>
     <item>
       <key>Gender</key>
@@ -248,6 +328,10 @@
     <item>
       <key>GenderCode</key>
       <value>gco</value>
+    </item>
+    <item>
+      <key>GenderId</key>
+      <value>gid</value>
     </item>
     <item>
       <key>GenderName</key>
@@ -272,6 +356,14 @@
     <item>
       <key>IdentifierId</key>
       <value>iid</value>
+    </item>
+    <item>
+      <key>InternalMaxQuantity</key>
+      <value>imx</value>
+    </item>
+    <item>
+      <key>InternalMinQuantity</key>
+      <value>imn</value>
     </item>
     <item>
       <key>IsAccountIdentityRequired</key>
@@ -378,8 +470,20 @@
       <value>kid</value>
     </item>
     <item>
+      <key>LastInitial</key>
+      <value>lni</value>
+    </item>
+    <item>
       <key>LastName</key>
       <value>lnm</value>
+    </item>
+    <item>
+      <key>LastNameInitial</key>
+      <value>lni</value>
+    </item>
+    <item>
+      <key>LibraryId</key>
+      <value>lid</value>
     </item>
     <item>
       <key>Locale</key>
@@ -399,19 +503,39 @@
     </item>
     <item>
       <key>LocationCode</key>
-      <value>loco</value>
+      <value>lco</value>
+    </item>
+    <item>
+      <key>LocationId</key>
+      <value>lid</value>
+    </item>
+    <item>
+      <key>Manufacturer</key>
+      <value>mfg</value>
+    </item>
+    <item>
+      <key>MD5</key>
+      <value>sum</value>
     </item>
     <item>
       <key>MemberId</key>
       <value>mid</value>
     </item>
     <item>
+      <key>MiddleInitial</key>
+      <value>mni</value>
+    </item>
+    <item>
       <key>MiddleName</key>
       <value>mnm</value>
     </item>
     <item>
+      <key>MiddleNameInitial</key>
+      <value>mni</value>
+    </item>
+    <item>
       <key>Name</key>
-      <value>nm</value>
+      <value>nam</value>
     </item>
     <item>
       <key>NameFirst</key>
@@ -435,7 +559,7 @@
     </item>
     <item>
       <key>NamePrefixId</key>
-      <value>npid</value>
+      <value>pid</value>
     </item>
     <item>
       <key>NameSingular</key>
@@ -443,11 +567,15 @@
     </item>
     <item>
       <key>NameSuffixId</key>
-      <value>nsid</value>
+      <value>sid</value>
     </item>
     <item>
       <key>NameWoDiacritics</key>
-      <value>nmwod</value>
+      <value>nwd</value>
+    </item>
+    <item>
+      <key>Notes</key>
+      <value>not</value>
     </item>
     <item>
       <key>OrganizationId</key>
@@ -458,12 +586,36 @@
       <value>oid</value>
     </item>
     <item>
+      <key>ParentPathId</key>
+      <value>ppi</value>
+    </item>
+    <item>
+      <key>PartitionId</key>
+      <value>pid</value>
+    </item>
+    <item>
+      <key>PartitionName</key>
+      <value>pnm</value>
+    </item>
+    <item>
+      <key>PartitionUid</key>
+      <value>pid</value>
+    </item>
+    <item>
       <key>PassHash</key>
       <value>ph</value>
     </item>
     <item>
       <key>PassSalt</key>
       <value>ps</value>
+    </item>
+    <item>
+      <key>Password</key>
+      <value>pwd</value>
+    </item>
+    <item>
+      <key>PathId</key>
+      <value>pid</value>
     </item>
     <item>
       <key>PersonId</key>
@@ -486,6 +638,14 @@
       <value>p</value>
     </item>
     <item>
+      <key>PrivateKey</key>
+      <value>iky</value>
+    </item>
+    <item>
+      <key>PrivateSecret</key>
+      <value>isc</value>
+    </item>
+    <item>
       <key>ProductEditionId</key>
       <value>peid</value>
     </item>
@@ -500,6 +660,14 @@
     <item>
       <key>ProfileUrl</key>
       <value>mul</value>
+    </item>
+    <item>
+      <key>PublicKey</key>
+      <value>eky</value>
+    </item>
+    <item>
+      <key>PublicSecret</key>
+      <value>esc</value>
     </item>
     <item>
       <key>PublicUid</key>
@@ -526,6 +694,18 @@
       <value>rti</value>
     </item>
     <item>
+      <key>Sequence</key>
+      <value>seq</value>
+    </item>
+    <item>
+      <key>SerialNumber</key>
+      <value>ser</value>
+    </item>
+    <item>
+      <key>ServerId</key>
+      <value>sid</value>
+    </item>
+    <item>
       <key>ServiceId</key>
       <value>sid</value>
     </item>
@@ -534,8 +714,24 @@
       <value>sid</value>
     </item>
     <item>
+      <key>Signature</key>
+      <value>sig</value>
+    </item>
+    <item>
+      <key>SignatureId</key>
+      <value>sid</value>
+    </item>
+    <item>
       <key>SignupRequestId</key>
       <value>rid</value>
+    </item>
+    <item>
+      <key>Size</key>
+      <value>siz</value>
+    </item>
+    <item>
+      <key>SizeBytes</key>
+      <value>szb</value>
     </item>
     <item>
       <key>SourceId</key>
@@ -547,11 +743,15 @@
     </item>
     <item>
       <key>StateCode</key>
-      <value>stco</value>
+      <value>sco</value>
     </item>
     <item>
       <key>StatusCode</key>
-      <value>stco</value>
+      <value>sco</value>
+    </item>
+    <item>
+      <key>StorageDeviceUid</key>
+      <value>sdi</value>
     </item>
     <item>
       <key>SubdivisionCode</key>
@@ -586,8 +786,20 @@
       <value>ud</value>
     </item>
     <item>
+      <key>Username</key>
+      <value>unm</value>
+    </item>
+    <item>
       <key>Value</key>
       <value>val</value>
+    </item>
+    <item>
+      <key>VerifiedItemId</key>
+      <value>vii</value>
+    </item>
+    <item>
+      <key>VerifiedSessionId</key>
+      <value>vsi</value>
     </item>
     <item>
       <key>Version</key>
@@ -596,6 +808,10 @@
     <item>
       <key>VersionText</key>
       <value>ver</value>
+    </item>
+    <item>
+      <key>SetId</key>
+      <value>sid</value>
     </item>
   </map>
 </codeSmith>
