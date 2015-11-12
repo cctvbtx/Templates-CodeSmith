@@ -1,4 +1,4 @@
-﻿<%@ CodeTemplate Language="C#" TargetLanguage="JavaScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="JavaScript" OutputType="Normal" CompilerVersion="v4.5" Description="" %>
 
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="CodeSmith.BaseTemplates" %>
