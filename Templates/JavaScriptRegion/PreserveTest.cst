@@ -1,0 +1,26 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="JavaScript" OutputType="None" CompilerVersion="v4.5" Description="" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.Core" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.Engine" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="CodeSmith.Core.Extensions" %>
+<%@ Import Namespace="CodeSmith.Engine" %>
+/*jslint node: true */
+
+'use strict';
+
+var newVariable = '1';
+
+// region Custom Operations
+// endregion
+
+module.exports = {
+    newVariable : newVariable
+};
